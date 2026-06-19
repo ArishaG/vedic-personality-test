@@ -5,6 +5,7 @@
   "type": "module",
   "description": "Hosted, mobile-friendly Vedic Personality Test with central storage (Vercel + Vercel Postgres).",
   "dependencies": {
-    "@vercel/postgres": "^0.10.0"
+    "@vercel/postgres": "^0.10.0",
+    "google-auth-library": "^9.15.0"
   }
 }

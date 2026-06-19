@@ -1,6 +1,7 @@
 // POST /api/submit  — public. Saves one completed test and returns whether
 // the taker should be shown their result (live facilitator setting).
 import { sql, ensureSchema, getSetting } from './_db.js';
+import { appendToSheet } from './_sheets.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -39,6 +40,12 @@ export default async function handler(req, res) {
          ${pct.goodness ?? null}, ${pct.passion ?? null}, ${pct.ignorance ?? null},
          ${dominant}, ${durationMs});
     `;
+
+    try {
+      await appendToSheet({ name, email, age, phone, dominant, raw, pct, durationMs, takenAt: new Date() });
+    } catch (err) {
+      console.error('sheets append failed', err);
+    }
 
     const showResults = (await getSetting('showResultsToTakers', 'true')) === 'true';
     const balancedScoring = (await getSetting('balancedScoring', 'false')) === 'true';

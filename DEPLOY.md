@@ -86,6 +86,38 @@ has a **free tier**.
 
 ---
 
+## Optional: live Excel backup via Google Sheets
+Every test result is always saved in the database (Step 3) and can be exported on demand
+from the Facilitator dashboard. If you'd also like a **live Google Sheet** that gets a new
+row automatically the instant someone finishes the test (no clicking export), set this up
+once:
+
+1. **Create the Sheet.** Go to https://sheets.new — this makes a blank Google Sheet.
+   Copy its **ID** from the URL: `https://docs.google.com/spreadsheets/d/`**`THIS_PART`**`/edit`.
+2. **Create a Google Cloud service account** (a robot account just for this app):
+   - Go to https://console.cloud.google.com/projectcreate and create a project (any name).
+   - In that project, go to **APIs & Services → Library**, search **Google Sheets API**, click **Enable**.
+   - Go to **APIs & Services → Credentials → Create Credentials → Service account**. Give it
+     any name, click through the defaults, then **Done**.
+   - Click the new service account → **Keys** tab → **Add Key → Create new key → JSON**.
+     A `.json` file downloads — open it in any text editor.
+3. **Share the Sheet with the robot account.** In the downloaded JSON, copy the
+   `client_email` value (looks like `something@your-project.iam.gserviceaccount.com`).
+   Back in your Google Sheet, click **Share**, paste that email in, and give it **Editor** access.
+4. **Add the Vercel environment variables.** In your Vercel project, open
+   **Settings → Environment Variables** and add:
+   - `GOOGLE_SERVICE_ACCOUNT_EMAIL` — the `client_email` value from the JSON file.
+   - `GOOGLE_PRIVATE_KEY` — the `private_key` value from the JSON file, pasted exactly as-is
+     (it's a long value starting with `-----BEGIN PRIVATE KEY-----`).
+   - `GOOGLE_SHEET_ID` — the Sheet ID you copied in step 1.
+5. **Redeploy** (Deployments tab → latest → **•••** → Redeploy) so the new settings take effect.
+
+That's it — from now on, every submitted test appends a row (timestamp, name, email, age,
+phone, dominant quality, scores, time to complete) to that Sheet in real time. You can open
+it in Google Sheets any time, or use **File → Download → Microsoft Excel (.xlsx)** to get a
+real Excel file. If these variables aren't set, the app behaves exactly as before — this
+feature is entirely optional and never blocks a submission if it fails.
+
 ## Frequently asked
 **Do takers install anything?** No. They just open the link in any phone browser.
 
