@@ -1,0 +1,50 @@
+// POST /api/submit  — public. Saves one completed test and returns whether
+// the taker should be shown their result (live facilitator setting).
+import { sql, ensureSchema, getSetting } from './_db.js';
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
+  }
+  try {
+    await ensureSchema();
+    const b = req.body || {};
+    // Basic validation / sanitation.
+    const id = 'r_' + Date.now() + '_' + Math.floor(Math.random() * 1e9);
+    const name = String(b.name || '').slice(0, 200);
+    const email = String(b.email || '').slice(0, 200);
+    const age = Number.isFinite(+b.age) ? Math.trunc(+b.age) : null;
+    const phone = String(b.phone || '').slice(0, 60);
+    const answers = Array.isArray(b.answers) ? b.answers : [];
+    const raw = b.raw || {};
+    const pct = b.pct || {};
+    const dominant = String(b.dominant || '').slice(0, 20);
+    const durationMs = Number.isFinite(+b.durationMs) ? Math.trunc(+b.durationMs) : null;
+
+    if (!name) {
+      res.status(400).json({ error: 'Name is required.' });
+      return;
+    }
+
+    await sql`
+      INSERT INTO results
+        (id, name, email, age, phone, answers,
+         raw_goodness, raw_passion, raw_ignorance,
+         pct_goodness, pct_passion, pct_ignorance,
+         dominant, duration_ms)
+      VALUES
+        (${id}, ${name}, ${email}, ${age}, ${phone}, ${JSON.stringify(answers)},
+         ${raw.goodness ?? null}, ${raw.passion ?? null}, ${raw.ignorance ?? null},
+         ${pct.goodness ?? null}, ${pct.passion ?? null}, ${pct.ignorance ?? null},
+         ${dominant}, ${durationMs});
+    `;
+
+    const showResults = (await getSetting('showResultsToTakers', 'true')) === 'true';
+    const balancedScoring = (await getSetting('balancedScoring', 'false')) === 'true';
+    res.status(200).json({ ok: true, id, showResults, balancedScoring });
+  } catch (err) {
+    console.error('submit error', err);
+    res.status(500).json({ error: 'Could not save result.' });
+  }
+}
