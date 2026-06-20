@@ -35,6 +35,7 @@ export async function appendToSheet(record) {
     record.name || '',
     record.email || '',
     record.age ?? '',
+    record.zip || '',
     record.phone || '',
     record.accessCode || '',
     record.dominant || '',

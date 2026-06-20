@@ -43,7 +43,7 @@
       '<div class="card center" style="max-width:440px;margin:0 auto">' +
         '<span class="hero-badge">Facilitator Area</span>' +
         '<h2>Enter password</h2>' +
-        '<p class="lead">This area is for the person conducting the test.</p>' +
+        '<p class="lead">This area is for the person conducting the reading.</p>' +
         '<form id="login" style="max-width:300px;margin:0 auto">' +
           '<div class="field" id="f_pw"><input id="pw" type="password" placeholder="Password" autofocus />' +
           '<div class="err">' + (errMsg ? esc(errMsg) : 'Incorrect password.') + '</div></div>' +
@@ -148,18 +148,18 @@
     card.appendChild(el(
       '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">' +
         '<div><h2 style="margin:0">Facilitator Dashboard</h2>' +
-        '<span class="muted">' + records.length + ' total tests in central storage</span></div>' +
+        '<span class="muted">' + records.length + ' total readings in central storage</span></div>' +
         '<div style="display:flex;gap:8px"><button class="btn ghost small" id="refresh">Refresh</button>' +
         '<button class="btn ghost small" id="lock">Lock &amp; exit</button></div>' +
       '</div>'
     ));
 
     /* share / QR */
-    card.appendChild(el('<div class="section-title">Share the test</div>'));
+    card.appendChild(el('<div class="section-title">Share the reading</div>'));
     var origin = location.origin + location.pathname.replace(/\/[^/]*$/, "/");
     var shareRow = el(
       '<div class="toolbar">' +
-        '<span class="muted">Test link:</span>' +
+        '<span class="muted">Reading link:</span>' +
         '<input id="shareUrl" type="text" readonly value="' + esc(origin) + '" style="min-width:240px;flex:1" />' +
         '<button class="btn ghost small" id="copyUrl">Copy</button>' +
         '<button class="btn ghost small" id="qrBtn">Show QR code</button>' +
@@ -170,15 +170,26 @@
     card.appendChild(qrWrap);
 
     /* access codes */
-    var unusedCount = accessCodes.filter(function (c) { return !c.usedAt; }).length;
+    var singleUseCodes = accessCodes.filter(function (c) { return !c.unlimited; });
+    var unlimitedCodes = accessCodes.filter(function (c) { return c.unlimited; });
+    var unusedCount = singleUseCodes.filter(function (c) { return !c.usedAt; }).length;
     card.appendChild(el('<div class="section-title">Access codes</div>'));
     card.appendChild(el(
       '<div class="toolbar">' +
-        '<span class="muted">' + unusedCount + ' unused &middot; ' + (accessCodes.length - unusedCount) +
-          ' used &middot; ' + accessCodes.length + ' total</span>' +
+        '<span class="muted">' + unusedCount + ' unused &middot; ' + (singleUseCodes.length - unusedCount) +
+          ' used &middot; ' + unlimitedCodes.length + ' universal &middot; ' + accessCodes.length + ' total</span>' +
         '<input id="genCount" type="number" min="1" max="500" value="20" style="width:80px" />' +
         '<button class="btn small" id="genCodes">Generate codes</button>' +
         '<button class="btn ghost small" id="toggleCodes">' + (showAllCodes ? "Hide all codes" : "Show all codes") + '</button>' +
+        '<button class="btn ghost small" id="resetCodes">Reset all to unused</button>' +
+      '</div>'
+    ));
+    card.appendChild(el(
+      '<div class="toolbar">' +
+        '<span class="muted">Universal code (never expires, unlimited uses):</span>' +
+        '<input id="universalCode" type="text" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="e.g. 0000" ' +
+          'value="' + esc((unlimitedCodes[0] && unlimitedCodes[0].code) || "") + '" style="width:100px;letter-spacing:2px" />' +
+        '<button class="btn ghost small" id="setUniversal">Set universal code</button>' +
       '</div>'
     ));
     var genResult = el('<div id="genResult" class="hidden" style="margin:6px 0 4px"></div>');
@@ -223,7 +234,7 @@
     /* stats */
     card.appendChild(el(
       '<div class="stat-grid">' +
-        stat(recs.length, "Tests in range") +
+        stat(recs.length, "Readings in range") +
         stat(avg(recs, "goodness") + "%", "Avg " + modeName("goodness"), color("goodness")) +
         stat(avg(recs, "passion") + "%", "Avg " + modeName("passion"), color("passion")) +
         stat(avg(recs, "ignorance") + "%", "Avg " + modeName("ignorance"), color("ignorance")) +
@@ -235,7 +246,7 @@
     card.appendChild(el(distBars(dist, recs.length)));
 
     card.appendChild(el('<div class="section-title">Records &amp; comparison vs group average</div>'));
-    card.appendChild(el(recs.length ? recordsTable(recs) : '<p class="muted">No tests in this range yet.</p>'));
+    card.appendChild(el(recs.length ? recordsTable(recs) : '<p class="muted">No readings in this range yet.</p>'));
 
     card.appendChild(el('<div class="section-title danger">Danger zone</div>'));
     card.appendChild(el('<button class="btn danger-btn small" id="clear">Delete ALL records</button>'));
@@ -268,7 +279,7 @@
       }
       return '<tr>' +
         '<td><strong>' + esc(r.name) + '</strong><br><small class="muted">' + esc(r.email || "") +
-          (r.phone ? " &middot; " + esc(r.phone) : "") + '</small></td>' +
+          (r.zip ? " &middot; " + esc(r.zip) : "") + (r.phone ? " &middot; " + esc(r.phone) : "") + '</small></td>' +
         '<td>' + esc(r.age != null ? r.age : "") + '</td>' +
         '<td><span class="tag" style="background:' + color(r.dominant) + '">' + modeName(r.dominant) + '</span></td>' +
         cell("goodness", gAvg) + cell("passion", pAvg) + cell("ignorance", iAvg) +
@@ -289,9 +300,10 @@
     var rows = codes.slice().sort(function (a, b) {
       return (a.usedAt ? 1 : 0) - (b.usedAt ? 1 : 0);
     }).map(function (c) {
-      return '<tr><td><code>' + esc(c.code) + '</code></td><td>' +
-        (c.usedAt ? '<small class="muted">Used ' + fmtDate(c.usedAt) + '</small>' : '<strong style="color:#1a7f37">Unused</strong>') +
-        '</td></tr>';
+      var status = c.unlimited
+        ? '<strong style="color:#8a5cf6">Unlimited</strong>'
+        : (c.usedAt ? '<small class="muted">Used ' + fmtDate(c.usedAt) + '</small>' : '<strong style="color:#1a7f37">Unused</strong>');
+      return '<tr><td><code>' + esc(c.code) + '</code></td><td>' + status + '</td></tr>';
     }).join("");
     return '<div style="overflow-x:auto;max-height:280px;overflow-y:auto"><table class="cmp-table">' +
       '<thead><tr><th>Code</th><th>Status</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
@@ -345,6 +357,31 @@
       showAllCodes = !showAllCodes;
       renderDashboard();
     });
+    document.getElementById("resetCodes").addEventListener("click", function () {
+      if (!confirm("Reset ALL access codes to unused? Anyone who already used a code could use it again.")) return;
+      api("/api/access-codes", { method: "POST", body: { action: "reset" } })
+        .then(function (r) { return r.json(); })
+        .then(function () {
+          accessCodes.forEach(function (c) { c.usedAt = null; });
+          flash("All codes reset to unused.");
+          renderDashboard();
+        })
+        .catch(function () { flash("Could not reset codes."); });
+    });
+    document.getElementById("setUniversal").addEventListener("click", function () {
+      var code = document.getElementById("universalCode").value.trim();
+      if (!code) { flash("Enter a code first."); return; }
+      api("/api/access-codes", { method: "POST", body: { universalCode: code } })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!data || !data.ok) { flash((data && data.error) || "Could not set universal code."); return; }
+          accessCodes = accessCodes.filter(function (c) { return c.code !== data.universal; });
+          accessCodes.push({ code: data.universal, usedAt: null, unlimited: true });
+          flash("Universal code set to " + data.universal + ".");
+          renderDashboard();
+        })
+        .catch(function () { flash("Could not set universal code."); });
+    });
 
     document.getElementById("showToggle").addEventListener("change", function (e) {
       var val = e.target.checked;
@@ -376,7 +413,7 @@
     document.getElementById("xlsx").addEventListener("click", exportExcel);
 
     document.getElementById("clear").addEventListener("click", function () {
-      if (!confirm("Delete ALL test records from central storage? This cannot be undone.")) return;
+      if (!confirm("Delete ALL reading records from central storage? This cannot be undone.")) return;
       api("/api/records?all=1", { method: "DELETE" }).then(function () { loadAndRender(); });
     });
     Array.prototype.forEach.call(document.querySelectorAll("[data-del]"), function (b) {
@@ -397,7 +434,7 @@
       qr.addData(url);
       qr.make();
       wrap.innerHTML = qr.createImgTag(6, 12);
-      wrap.appendChild(el('<p class="muted" style="font-size:12px;margin-top:6px">Have takers scan this with their phone camera to open the test.</p>'));
+      wrap.appendChild(el('<p class="muted" style="font-size:12px;margin-top:6px">Have takers scan this with their phone camera to open the reading.</p>'));
     } catch (e) {
       wrap.innerHTML = '<p class="muted">Could not generate QR code.</p>';
     }
@@ -416,7 +453,7 @@
     if (!recs.length) { flash("No records in this date range to export."); return; }
     var rows = recs.map(function (r) {
       return {
-        Name: r.name || "", Email: r.email || "", Age: r.age != null ? r.age : "", Phone: r.phone || "",
+        Name: r.name || "", Email: r.email || "", Age: r.age != null ? r.age : "", Zip: r.zip || "", Phone: r.phone || "",
         AccessCode: r.accessCode || "",
         Dominant: modeName(r.dominant),
         ClarityPct: r.pct ? r.pct.goodness : "", DrivePct: r.pct ? r.pct.passion : "", InertiaPct: r.pct ? r.pct.ignorance : "",

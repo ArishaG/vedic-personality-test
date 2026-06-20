@@ -16,23 +16,30 @@
     state = { person: null, answers: [], index: 0, startTime: null };
     view.innerHTML = "";
     var card = el(
-      '<div class="card center">' +
-        '<span class="hero-badge">The Vedic Personality Test</span>' +
+      '<div class="card center mystical">' +
+        '<span class="hero-badge">The Vedic Personality Reading</span>' +
         '<h2>Discover your dominant quality of nature</h2>' +
-        '<p class="lead">Answer 36 quick statements. Takes about 5 minutes. Your result reveals your balance of ' +
+        '<p class="lead">Answer 36 quick statements. Takes about 5 minutes. Your reading reveals your balance of ' +
         'three inner qualities — Clarity, Drive and Inertia.</p>' +
         '<form id="who" style="max-width:480px;margin:18px auto 0;">' +
           field("code", "Access code", "tel", true, 'maxlength="4" inputmode="numeric" pattern="[0-9]*" style="letter-spacing:4px"') +
           field("name", "Full name", "text", true) +
           field("email", "Email", "email", true) +
-          field("age", "Age", "number", true) +
-          field("phone", "Phone (optional)", "tel", false) +
-          '<button class="btn" type="submit" style="width:100%;margin-top:10px;">Start the test &rarr;</button>' +
+          selectField("age", "Age", ageOptions(), true) +
+          field("zip", "Zip code", "text", true, 'maxlength="10" inputmode="numeric"') +
+          field("phone", "Phone", "tel", false) +
+          '<button class="btn" type="submit" style="width:100%;margin-top:10px;">Begin the Reading &rarr;</button>' +
         '</form>' +
       '</div>'
     );
     view.appendChild(card);
     document.getElementById("who").addEventListener("submit", onWelcomeSubmit);
+  }
+
+  function ageOptions() {
+    var opts = '<option value="" disabled selected>Select age</option>';
+    for (var i = 1; i <= 120; i++) opts += '<option value="' + i + '">' + i + '</option>';
+    return opts;
   }
 
   function field(id, label, type, required, extra) {
@@ -47,14 +54,25 @@
     );
   }
 
+  function selectField(id, label, optionsHtml, required) {
+    return (
+      '<div class="field" id="f_' + id + '">' +
+        '<label for="' + id + '">' + esc(label) + (required ? ' <span class="req">*</span>' : '') + '</label>' +
+        '<select id="' + id + '" name="' + id + '" ' + (required ? 'required' : '') + '>' + optionsHtml + '</select>' +
+        '<div class="err">Please select a ' + esc(label.toLowerCase()) + '.</div>' +
+      '</div>'
+    );
+  }
+
   function onWelcomeSubmit(e) {
     e.preventDefault();
-    var code = val("code"), name = val("name"), email = val("email"), age = val("age"), phone = val("phone");
+    var code = val("code"), name = val("name"), email = val("email"), age = val("age"), zip = val("zip"), phone = val("phone");
     var ok = true;
     ok = setValid("code", code.length >= 1) && ok;
     ok = setValid("name", name.length >= 1) && ok;
     ok = setValid("email", /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) && ok;
     ok = setValid("age", age !== "" && Number(age) >= 1 && Number(age) <= 120) && ok;
+    ok = setValid("zip", zip.length >= 3) && ok;
     if (!ok) return;
 
     var btn = document.querySelector("#who button[type=submit]");
@@ -71,10 +89,10 @@
           setValid("code", false);
           document.querySelector("#f_code .err").textContent = (data && data.error) || "Invalid or already-used access code.";
           btn.disabled = false;
-          btn.textContent = "Start the test →";
+          btn.textContent = "Begin the Reading →";
           return;
         }
-        state.person = { name: name, email: email, age: Number(age), phone: phone, accessCode: code.toUpperCase() };
+        state.person = { name: name, email: email, age: Number(age), zip: zip, phone: phone, accessCode: code.toUpperCase() };
         state.answers = new Array(VPI.QUESTIONS.length).fill(null);
         state.index = 0;
         state.startTime = Date.now();
@@ -84,7 +102,7 @@
         setValid("code", false);
         document.querySelector("#f_code .err").textContent = "Could not verify code — check your connection and try again.";
         btn.disabled = false;
-        btn.textContent = "Start the test →";
+        btn.textContent = "Begin the Reading →";
       });
   }
   function val(id) { return document.getElementById(id).value.trim(); }
@@ -159,7 +177,7 @@
     var result = VPI.score(state.answers);
     var payload = {
       name: state.person.name, email: state.person.email,
-      age: state.person.age, phone: state.person.phone, accessCode: state.person.accessCode,
+      age: state.person.age, zip: state.person.zip, phone: state.person.phone, accessCode: state.person.accessCode,
       answers: state.answers, raw: result.raw, pct: result.pct, dominant: result.dominant,
       durationMs: state.startTime ? (Date.now() - state.startTime) : null
     };
@@ -241,7 +259,7 @@
         a.name + ' (' + a.traditional + ')</strong></p>';
     var card = el(
       '<div class="card">' +
-        '<div class="center"><span class="hero-badge">Your Result</span>' +
+        '<div class="center"><span class="hero-badge">Your Reading</span>' +
         '<h2>' + esc(person.name) + '</h2>' + headline + '</div>' +
         v.order.map(function (m) { return modeBar(m, v.pct[m]); }).join("") +
         '<div class="dominant-callout">' + esc(VPI.summaryLine(v)) + '</div>' +

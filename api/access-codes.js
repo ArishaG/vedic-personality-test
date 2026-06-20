@@ -1,6 +1,12 @@
 // GET  /api/access-codes — admin. Lists every code and whether it's been used.
-// POST /api/access-codes — admin. Generates { count } new single-use codes.
-import { ensureSchema, isAuthed, listAccessCodes, createAccessCodes } from './_db.js';
+// POST /api/access-codes — admin. Three actions, picked by which field is present:
+//   { count }         generate N new single-use codes
+//   { universalCode }  set/replace the one code that never expires
+//   { action: 'reset' } mark every code unused again
+import {
+  ensureSchema, isAuthed, listAccessCodes, createAccessCodes,
+  setUniversalCode, resetAllAccessCodes
+} from './_db.js';
 
 export default async function handler(req, res) {
   if (!isAuthed(req)) {
@@ -15,7 +21,23 @@ export default async function handler(req, res) {
       return;
     }
     if (req.method === 'POST') {
-      const count = Math.trunc(+((req.body && req.body.count) || 0));
+      const b = req.body || {};
+      if (b.action === 'reset') {
+        await resetAllAccessCodes();
+        res.status(200).json({ ok: true });
+        return;
+      }
+      if (b.universalCode) {
+        const code = String(b.universalCode).trim().toUpperCase().slice(0, 40);
+        if (!code) {
+          res.status(400).json({ error: 'Provide a code.' });
+          return;
+        }
+        await setUniversalCode(code);
+        res.status(200).json({ ok: true, universal: code });
+        return;
+      }
+      const count = Math.trunc(+(b.count || 0));
       if (!Number.isFinite(count) || count < 1 || count > 500) {
         res.status(400).json({ error: 'Provide a count between 1 and 500.' });
         return;

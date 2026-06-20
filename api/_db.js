@@ -15,6 +15,7 @@ export async function ensureSchema() {
       name          TEXT NOT NULL,
       email         TEXT,
       age           INTEGER,
+      zip           TEXT,
       phone         TEXT,
       access_code   TEXT,
       answers       JSONB,
@@ -29,8 +30,9 @@ export async function ensureSchema() {
       taken_at      TIMESTAMPTZ NOT NULL DEFAULT now()
     );
   `;
-  // Migration for tables created before access_code existed.
+  // Migration for tables created before these columns existed.
   await sql`ALTER TABLE results ADD COLUMN IF NOT EXISTS access_code TEXT;`;
+  await sql`ALTER TABLE results ADD COLUMN IF NOT EXISTS zip TEXT;`;
   await sql`
     CREATE TABLE IF NOT EXISTS app_settings (
       key   TEXT PRIMARY KEY,
@@ -41,9 +43,11 @@ export async function ensureSchema() {
     CREATE TABLE IF NOT EXISTS access_codes (
       code       TEXT PRIMARY KEY,
       used_at    TIMESTAMPTZ,
+      unlimited  BOOLEAN NOT NULL DEFAULT false,
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
   `;
+  await sql`ALTER TABLE access_codes ADD COLUMN IF NOT EXISTS unlimited BOOLEAN NOT NULL DEFAULT false;`;
   // Seed default settings if missing.
   await sql`
     INSERT INTO app_settings (key, value)
@@ -105,22 +109,41 @@ export async function createAccessCodes(count) {
 
 export async function listAccessCodes() {
   await ensureSchema();
-  const { rows } = await sql`SELECT code, used_at FROM access_codes ORDER BY created_at DESC;`;
-  return rows.map(function (r) { return { code: r.code, usedAt: r.used_at }; });
+  const { rows } = await sql`SELECT code, used_at, unlimited FROM access_codes ORDER BY created_at DESC;`;
+  return rows.map(function (r) { return { code: r.code, usedAt: r.used_at, unlimited: r.unlimited }; });
+}
+
+// Creates (or converts an existing single-use code into) one code that never
+// expires and can be used by any number of people — for a walk-up/kiosk display.
+export async function setUniversalCode(code) {
+  await ensureSchema();
+  await sql`
+    INSERT INTO access_codes (code, unlimited, used_at)
+    VALUES (${code}, true, NULL)
+    ON CONFLICT (code) DO UPDATE SET unlimited = true, used_at = NULL;
+  `;
+  return code;
+}
+
+// Marks every code unused again (e.g. resetting before a new event).
+export async function resetAllAccessCodes() {
+  await ensureSchema();
+  await sql`UPDATE access_codes SET used_at = NULL;`;
 }
 
 export async function accessCodeIsValid(code) {
   await ensureSchema();
-  const { rows } = await sql`SELECT 1 FROM access_codes WHERE code = ${code} AND used_at IS NULL;`;
+  const { rows } = await sql`SELECT 1 FROM access_codes WHERE code = ${code} AND (unlimited OR used_at IS NULL);`;
   return rows.length > 0;
 }
 
 // Atomically marks a code used; returns false if it was invalid or already used.
+// Unlimited codes are validated but never consumed.
 export async function claimAccessCode(code) {
   await ensureSchema();
   const { rows } = await sql`
-    UPDATE access_codes SET used_at = now()
-    WHERE code = ${code} AND used_at IS NULL
+    UPDATE access_codes SET used_at = CASE WHEN unlimited THEN used_at ELSE now() END
+    WHERE code = ${code} AND (unlimited OR used_at IS NULL)
     RETURNING code;
   `;
   return rows.length > 0;

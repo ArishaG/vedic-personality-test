@@ -16,6 +16,7 @@ export default async function handler(req, res) {
     const name = String(b.name || '').slice(0, 200);
     const email = String(b.email || '').slice(0, 200);
     const age = Number.isFinite(+b.age) ? Math.trunc(+b.age) : null;
+    const zip = String(b.zip || '').slice(0, 10);
     const phone = String(b.phone || '').slice(0, 60);
     const accessCode = String(b.accessCode || '').trim().toUpperCase().slice(0, 40);
     const answers = Array.isArray(b.answers) ? b.answers : [];
@@ -26,6 +27,10 @@ export default async function handler(req, res) {
 
     if (!name) {
       res.status(400).json({ error: 'Name is required.' });
+      return;
+    }
+    if (!zip) {
+      res.status(400).json({ error: 'Zip code is required.' });
       return;
     }
     if (!accessCode) {
@@ -39,19 +44,19 @@ export default async function handler(req, res) {
 
     await sql`
       INSERT INTO results
-        (id, name, email, age, phone, access_code, answers,
+        (id, name, email, age, zip, phone, access_code, answers,
          raw_goodness, raw_passion, raw_ignorance,
          pct_goodness, pct_passion, pct_ignorance,
          dominant, duration_ms)
       VALUES
-        (${id}, ${name}, ${email}, ${age}, ${phone}, ${accessCode}, ${JSON.stringify(answers)},
+        (${id}, ${name}, ${email}, ${age}, ${zip}, ${phone}, ${accessCode}, ${JSON.stringify(answers)},
          ${raw.goodness ?? null}, ${raw.passion ?? null}, ${raw.ignorance ?? null},
          ${pct.goodness ?? null}, ${pct.passion ?? null}, ${pct.ignorance ?? null},
          ${dominant}, ${durationMs});
     `;
 
     try {
-      await appendToSheet({ name, email, age, phone, accessCode, dominant, raw, pct, durationMs, takenAt: new Date() });
+      await appendToSheet({ name, email, age, zip, phone, accessCode, dominant, raw, pct, durationMs, takenAt: new Date() });
     } catch (err) {
       console.error('sheets append failed', err);
     }

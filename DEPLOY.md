@@ -1,6 +1,6 @@
-# Deploying the Vedic Personality Test (hosted version)
+# Deploying the Vedic Personality Reading (hosted version)
 
-This is a step-by-step guide for putting the test online with **Vercel** so people
+This is a step-by-step guide for putting the reading online with **Vercel** so people
 can take it from their **phones**, with **all results collected in one place**.
 
 You do **not** need to be a programmer. Budget ~15 minutes. Everything used here
@@ -9,8 +9,8 @@ has a **free tier**.
 ---
 
 ## What you are setting up
-- A public website (your domain) where anyone can take the test on a phone or computer.
-- A central database that stores every result.
+- A public website (your domain) where anyone can take the reading on a phone or computer.
+- A central database that stores every reading.
 - A password-protected "Facilitator" dashboard to see all results and analytics.
 
 ---
@@ -37,7 +37,7 @@ has a **free tier**.
 3. Leave all build settings at their defaults and click **Deploy**.
    (Vercel automatically detects it: static site + serverless functions in `/api`.)
 4. Wait for the first deploy to finish. You now have a live URL like
-   `https://vedic-test.vercel.app` — the test page already works, but it cannot
+   `https://vedic-test.vercel.app` — the reading page already works, but it cannot
    save results yet until you add the database (next step).
 
 ## Step 3 — Add the central database (Vercel Postgres)
@@ -46,7 +46,7 @@ has a **free tier**.
 3. When asked, **Connect** the database to this project (accept the defaults).
    This automatically adds the database connection settings to your project.
 4. That's it — no tables to create by hand. The app creates them automatically
-   the first time someone submits a test.
+   the first time someone submits a reading.
 
 ## Step 4 — Set the Facilitator password
 1. In your project, open **Settings → Environment Variables**.
@@ -59,7 +59,7 @@ has a **free tier**.
 1. Open the **Deployments** tab.
 2. On the most recent deployment, click the **•••** menu → **Redeploy** → **Redeploy**.
 
-✅ **Done.** Visit your URL. Take a test on your phone. Then open the
+✅ **Done.** Visit your URL. Take a reading on your phone. Then open the
 **Facilitator** link (top-right) and log in with your `ADMIN_PASSWORD` to see results.
 
 ---
@@ -68,20 +68,25 @@ has a **free tier**.
 1. In your project, open **Settings → Domains**.
 2. Type your domain and click **Add**, then follow the on-screen DNS instructions
    (Vercel tells you exactly what record to add at your domain registrar).
-3. Once it shows "Valid", your test is live on your domain.
+3. Once it shows "Valid", your reading is live on your domain.
 
 ---
 
 ## How the facilitator uses it day-to-day
 - Open the site → click **Facilitator** (top-right) → enter the password.
-- **Generate access codes:** the test now requires a one-time access code to start —
-  takers without a valid, unused code can't begin. Under **Access codes**, enter how
-  many you need, click **Generate codes**, then **Copy all** and print/hand them out
-  (e.g. one slip of paper per person). A code is only consumed when someone actually
-  finishes and submits, so an abandoned attempt doesn't waste it. Click **Show all
-  codes** any time to see which are used vs. still available.
-- **Share the test:** copy the link, or click **Show QR code** and let people
-  scan it with their phone camera to open the test.
+- **Generate access codes:** the reading now requires a one-time, 4-digit access code
+  to start — takers without a valid, unused code can't begin. Under **Access codes**,
+  enter how many you need, click **Generate codes**, then **Copy all** and print/hand
+  them out (e.g. one slip of paper per person). A code is only consumed when someone
+  actually finishes and submits, so an abandoned attempt doesn't waste it. Click
+  **Show all codes** any time to see which are used vs. still available.
+- **Universal code:** for a walk-up/kiosk setup, set one 4-digit code (e.g. `0000`)
+  that never expires and any number of people can use — type it into **Universal
+  code** and click **Set universal code**.
+- **Reset all to unused:** click **Reset all to unused** to mark every single-use
+  code unused again (e.g. before a new event reusing the same printed codes).
+- **Share the reading:** copy the link, or click **Show QR code** and let people
+  scan it with their phone camera to open the reading.
 - **Show or hide results from takers:** flip the toggle. It applies to everyone
   instantly — when OFF, takers only see a thank-you screen and you review their
   results privately in the dashboard.
@@ -93,9 +98,9 @@ has a **free tier**.
 ---
 
 ## Optional: live Excel backup via Google Sheets
-Every test result is always saved in the database (Step 3) and can be exported on demand
+Every reading is always saved in the database (Step 3) and can be exported on demand
 from the Facilitator dashboard. If you'd also like a **live Google Sheet** that gets a new
-row automatically the instant someone finishes the test (no clicking export), set this up
+row automatically the instant someone finishes the reading (no clicking export), set this up
 once:
 
 1. **Create the Sheet.** Go to https://sheets.new — this makes a blank Google Sheet.
@@ -118,8 +123,8 @@ once:
    - `GOOGLE_SHEET_ID` — the Sheet ID you copied in step 1.
 5. **Redeploy** (Deployments tab → latest → **•••** → Redeploy) so the new settings take effect.
 
-That's it — from now on, every submitted test appends a row (timestamp, name, email, age,
-phone, access code, dominant quality, scores, time to complete) to that Sheet in real time. You can open
+That's it — from now on, every submitted reading appends a row (timestamp, name, email, age,
+zip, phone, access code, dominant quality, scores, time to complete) to that Sheet in real time. You can open
 it in Google Sheets any time, or use **File → Download → Microsoft Excel (.xlsx)** to get a
 real Excel file. If these variables aren't set, the app behaves exactly as before — this
 feature is entirely optional and never blocks a submission if it fails.
@@ -127,9 +132,10 @@ feature is entirely optional and never blocks a submission if it fails.
 ## Frequently asked
 **Do takers install anything?** No. They just open the link in any phone browser.
 
-**Do takers need anything besides the link?** Yes — a one-time access code from the
+**Do takers need anything besides the link?** Yes — a 4-digit access code from the
 facilitator. Generate codes from the dashboard (see above) and hand them out; each
-code lets exactly one person take the test.
+single-use code lets exactly one person take the reading, or set one universal code
+for a walk-up/kiosk setup where anyone can type the same code.
 
 **Where are results stored?** In the Vercel Postgres database — one shared place,
 visible to the facilitator from any device.
