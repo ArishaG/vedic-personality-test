@@ -23,14 +23,14 @@
       '<div class="landing">' +
         '<div class="landing-hero">' +
           '<div class="landing-left">' +
-            '<h1 class="landing-title">The Vedic Personality Reading</h1>' +
+            '<h1 class="landing-title">The Vedic<br>Personality Reading</h1>' +
             '<p class="landing-sub">Discover your dominant quality of nature — a living blend of Sattva, Rajas and Tamas.</p>' +
             '<button class="btn btn-lg" id="goToForm">Take the Reading &rarr;</button>' +
           '</div>' +
           '<div class="landing-right">' +
             '<div class="stats-label">Live Reading Stats</div>' +
             '<div id="statsArea"><p class="muted">Loading live stats&hellip;</p></div>' +
-            '<p class="landing-question">Curious how your inner balance compares?</p>' +
+            '<p class="landing-question">How does your inner balance compare?</p>' +
           '</div>' +
         '</div>' +
         '<div class="scroll-hint">Scroll to explore the three gunas &#8595;</div>' +
@@ -49,7 +49,8 @@
       name + ' <strong>' + (pct != null ? pct : "—") + '%</strong></div>'
     );
   }
-  // Builds a 100-dot "crowd" pictogram, proportioned and color-coded by average guna split, shuffled for an organic mix.
+  // Builds a 100-dot "crowd" pictogram, proportioned and color-coded by average guna split.
+  // Dots are grouped by guna (not shuffled) so each color forms its own cluster.
   function buildCrowdDots(g, p, ig) {
     var total = g + p + ig;
     var nG = total ? Math.round((g / total) * 100) : 0;
@@ -60,10 +61,6 @@
     for (i = 0; i < nG; i++) arr.push(VPI.ANALYSIS.goodness.color);
     for (i = 0; i < nP; i++) arr.push(VPI.ANALYSIS.passion.color);
     for (i = 0; i < nI; i++) arr.push(VPI.ANALYSIS.ignorance.color);
-    for (i = arr.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1));
-      var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
-    }
     return arr;
   }
   function statsHtml(data) {

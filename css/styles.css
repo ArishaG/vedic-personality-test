@@ -160,7 +160,7 @@ p.lead { color: var(--muted); margin-top: 0; font-size: 17px; }
 .landing-sub { color: var(--muted); font-size: 18px; margin: 0 0 26px; max-width: 480px; }
 .landing-right { text-align: left; }
 .stats-label { font-size: 15px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent-bright); margin-bottom: 16px; font-weight: 600; }
-.landing-question { color: var(--ink); font-size: 19px; font-style: italic; margin-top: 20px; }
+.landing-question { color: var(--ink); font-size: 25px; font-style: italic; margin-top: 20px; }
 .scroll-hint { text-align: center; color: var(--muted); font-size: 13px; margin: 6px 0 36px; opacity: .8; animation: bob 2.4s ease-in-out infinite; }
 @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
 
@@ -179,18 +179,18 @@ p.lead { color: var(--muted); margin-top: 0; font-size: 17px; }
 }
 .crowd-legend { display: flex; flex-direction: column; gap: 14px; }
 .legend-item { display: flex; align-items: center; gap: 12px; color: var(--ink); font-size: 20px; }
-.legend-item strong { color: var(--accent-bright); font-family: "Playfair Display", serif; font-size: 22px; }
+.legend-item strong { color: var(--accent-bright); font-family: "Playfair Display", serif; font-size: 30px; }
 .legend-dot { width: 18px; height: 18px; border-radius: 50%; box-shadow: 0 0 8px currentColor; flex: 0 0 auto; }
 
 @media (min-width: 880px) and (orientation: landscape) {
-  .landing { display: grid; grid-template-columns: 1fr min(1500px, 92vw) 1fr; }
+  .landing { display: grid; grid-template-columns: 1fr min(1700px, 92vw) 1fr; }
   .landing-hero, .scroll-hint, .guna-section { grid-column: 2; }
   .landing-hero {
-    flex-direction: row; align-items: center; justify-content: center; gap: 70px;
+    flex-direction: row; align-items: center; justify-content: space-between; gap: 50px;
   }
-  .landing-left { flex: 0 1 640px; }
-  .landing-right { flex: 0 1 540px; }
-  .landing-title { font-size: 88px; }
+  .landing-left { flex: 0 1 920px; }
+  .landing-right { flex: 0 1 620px; }
+  .landing-title { font-size: 92px; line-height: 1.05; }
 }
 
 /* Interactive Sattva / Rajas / Tamas graphic — below the fold on the landing screen */
