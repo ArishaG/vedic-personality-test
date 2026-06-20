@@ -20,8 +20,10 @@
         '<span class="hero-badge">The Vedic Personality Reading</span>' +
         '<h2>Discover your dominant quality of nature</h2>' +
         '<p class="lead">Answer 36 quick statements. Takes about 5 minutes. Your reading reveals your balance of ' +
-        'three inner qualities — Clarity, Drive and Inertia.</p>' +
-        '<form id="who" style="max-width:480px;margin:18px auto 0;">' +
+        'three inner qualities — Sattva, Rajas and Tamas.</p>' +
+        gunaWheel() +
+        '<div class="guna-detail" id="gunaDetail"></div>' +
+        '<form id="who" style="max-width:480px;margin:26px auto 0;">' +
           field("code", "Access code", "tel", true, 'maxlength="4" inputmode="numeric" pattern="[0-9]*" style="letter-spacing:4px"') +
           field("name", "Full name", "text", true) +
           field("email", "Email", "email", true) +
@@ -33,12 +35,53 @@
       '</div>'
     );
     view.appendChild(card);
+    wireGunaWheel();
     document.getElementById("who").addEventListener("submit", onWelcomeSubmit);
   }
 
+  /* ---------- Interactive Sattva / Rajas / Tamas graphic ---------- */
+  function gunaWheel() {
+    return (
+      '<div class="guna-wheel" id="gunaWheel">' +
+        VPI.MODES.map(function (m) {
+          var a = VPI.ANALYSIS[m];
+          return (
+            '<button type="button" class="guna-seg" data-mode="' + m + '" style="--c:' + a.color + '">' +
+              '<span class="guna-name">' + a.name + '</span>' +
+              '<span class="guna-quality">' + esc(a.quality) + '</span>' +
+            '</button>'
+          );
+        }).join("") +
+      '</div>'
+    );
+  }
+  function gunaDetailHtml(mode) {
+    var a = VPI.ANALYSIS[mode];
+    return (
+      '<div class="guna-detail-inner" style="--c:' + a.color + '">' +
+        '<strong>' + a.name + '</strong> <span class="muted">(' + esc(a.quality) + ' &middot; ' + esc(a.traditional) + ')</span>' +
+        '<p>' + esc(a.summary) + '</p>' +
+      '</div>'
+    );
+  }
+  function wireGunaWheel() {
+    var wheel = document.getElementById("gunaWheel");
+    var detail = document.getElementById("gunaDetail");
+    function select(mode, btn) {
+      Array.prototype.forEach.call(wheel.querySelectorAll(".guna-seg"), function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      detail.innerHTML = gunaDetailHtml(mode);
+    }
+    Array.prototype.forEach.call(wheel.querySelectorAll(".guna-seg"), function (btn) {
+      btn.addEventListener("click", function () { select(btn.getAttribute("data-mode"), btn); });
+    });
+    select("goodness", wheel.querySelector('[data-mode="goodness"]'));
+  }
+
+  var AGE_RANGES = ["Under 18", "18-24", "25-34", "35-44", "45-54", "55-64", "65+"];
   function ageOptions() {
-    var opts = '<option value="" disabled selected>Select age</option>';
-    for (var i = 1; i <= 120; i++) opts += '<option value="' + i + '">' + i + '</option>';
+    var opts = '<option value="" disabled selected>Select age range</option>';
+    AGE_RANGES.forEach(function (r) { opts += '<option value="' + r + '">' + r + '</option>'; });
     return opts;
   }
 
@@ -59,7 +102,7 @@
       '<div class="field" id="f_' + id + '">' +
         '<label for="' + id + '">' + esc(label) + (required ? ' <span class="req">*</span>' : '') + '</label>' +
         '<select id="' + id + '" name="' + id + '" ' + (required ? 'required' : '') + '>' + optionsHtml + '</select>' +
-        '<div class="err">Please select a ' + esc(label.toLowerCase()) + '.</div>' +
+        '<div class="err">Please select an option.</div>' +
       '</div>'
     );
   }
@@ -71,7 +114,7 @@
     ok = setValid("code", code.length >= 1) && ok;
     ok = setValid("name", name.length >= 1) && ok;
     ok = setValid("email", /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) && ok;
-    ok = setValid("age", age !== "" && Number(age) >= 1 && Number(age) <= 120) && ok;
+    ok = setValid("age", age !== "") && ok;
     ok = setValid("zip", zip.length >= 3) && ok;
     if (!ok) return;
 
@@ -92,7 +135,7 @@
           btn.textContent = "Begin the Reading →";
           return;
         }
-        state.person = { name: name, email: email, age: Number(age), zip: zip, phone: phone, accessCode: code.toUpperCase() };
+        state.person = { name: name, email: email, age: age, zip: zip, phone: phone, accessCode: code.toUpperCase() };
         state.answers = new Array(VPI.QUESTIONS.length).fill(null);
         state.index = 0;
         state.startTime = Date.now();
@@ -228,7 +271,7 @@
     var a = VPI.ANALYSIS[mode];
     return (
       '<div class="modebar">' +
-        '<div class="top"><span class="name">' + a.name + ' <small>(' + a.traditional + ' &middot; ' + a.sanskrit + ')</small></span>' +
+        '<div class="top"><span class="name">' + a.name + ' <small>(' + esc(a.quality) + ' &middot; ' + a.traditional + ')</small></span>' +
         '<span class="val" style="color:' + a.color + '">' + pct + '%</span></div>' +
         '<div class="track"><span style="width:' + pct + '%;background:' + a.color + '"></span></div>' +
       '</div>'
@@ -263,7 +306,7 @@
         '<h2>' + esc(person.name) + '</h2>' + headline + '</div>' +
         v.order.map(function (m) { return modeBar(m, v.pct[m]); }).join("") +
         '<div class="dominant-callout">' + esc(VPI.summaryLine(v)) + '</div>' +
-        (balanced ? '<p class="muted" style="font-size:12px">Showing the <strong>balanced view</strong>, which adjusts for the fact that the Clarity statements are easier to agree with. The raw (unadjusted) scores are listed below.</p>' : '') +
+        (balanced ? '<p class="muted" style="font-size:12px">Showing the <strong>balanced view</strong>, which adjusts for the fact that the Sattva statements are easier to agree with. The raw (unadjusted) scores are listed below.</p>' : '') +
         '<p class="muted" style="font-size:13px">Raw scores (each area 12&ndash;84): ' +
           esc(VPI.ANALYSIS.goodness.name) + ' ' + result.raw.goodness + ' (' + result.pct.goodness + '%) &middot; ' +
           esc(VPI.ANALYSIS.passion.name) + ' ' + result.raw.passion + ' (' + result.pct.passion + '%) &middot; ' +

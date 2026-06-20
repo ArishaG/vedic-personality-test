@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     const id = 'r_' + Date.now() + '_' + Math.floor(Math.random() * 1e9);
     const name = String(b.name || '').slice(0, 200);
     const email = String(b.email || '').slice(0, 200);
-    const age = Number.isFinite(+b.age) ? Math.trunc(+b.age) : null;
+    const age = String(b.age || '').slice(0, 20);
     const zip = String(b.zip || '').slice(0, 10);
     const phone = String(b.phone || '').slice(0, 60);
     const accessCode = String(b.accessCode || '').trim().toUpperCase().slice(0, 40);
@@ -27,6 +27,10 @@ export default async function handler(req, res) {
 
     if (!name) {
       res.status(400).json({ error: 'Name is required.' });
+      return;
+    }
+    if (!age) {
+      res.status(400).json({ error: 'Age is required.' });
       return;
     }
     if (!zip) {

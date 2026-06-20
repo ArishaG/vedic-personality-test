@@ -62,8 +62,8 @@ window.VPI = (function () {
   // Offline analysis content for each mode (guna).
   var ANALYSIS = {
     goodness: {
-      name: "Clarity",
-      sanskrit: "Sattva",
+      name: "Sattva",
+      quality: "Clarity",
       traditional: "Goodness",
       color: "#4ade80",
       summary: "The quality of clarity, balance and harmony (traditionally called Goodness, or Sattva). It is associated with calm, knowledge, self-control, healthy living, compassion and a natural pull toward purpose and meaning.",
@@ -79,8 +79,8 @@ window.VPI = (function () {
       lifestyle: "Early rising, fresh and light foods, regular study or meditation, and a clean, orderly environment all reinforce this quality."
     },
     passion: {
-      name: "Drive",
-      sanskrit: "Rajas",
+      name: "Rajas",
+      quality: "Drive",
       traditional: "Passion",
       color: "#f0975a",
       summary: "The quality of energy, ambition and activity (traditionally called Passion, or Rajas). It fuels desire, achievement and constant motion, but can also bring restlessness, attachment to results and anxiety.",
@@ -96,8 +96,8 @@ window.VPI = (function () {
       lifestyle: "Balance intense activity with stillness — breathing, walks in nature, lighter food and scheduled downtime help temper restlessness."
     },
     ignorance: {
-      name: "Inertia",
-      sanskrit: "Tamas",
+      name: "Tamas",
+      quality: "Inertia",
       traditional: "Ignorance",
       color: "#9b8fc0",
       summary: "The quality of inertia, heaviness and low momentum (traditionally called Ignorance, or Tamas). It can show up as procrastination, discouragement, neglected duties and difficulty finding motivation.",

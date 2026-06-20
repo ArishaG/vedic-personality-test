@@ -14,7 +14,7 @@ export async function ensureSchema() {
       id            TEXT PRIMARY KEY,
       name          TEXT NOT NULL,
       email         TEXT,
-      age           INTEGER,
+      age           TEXT,
       zip           TEXT,
       phone         TEXT,
       access_code   TEXT,
@@ -33,6 +33,8 @@ export async function ensureSchema() {
   // Migration for tables created before these columns existed.
   await sql`ALTER TABLE results ADD COLUMN IF NOT EXISTS access_code TEXT;`;
   await sql`ALTER TABLE results ADD COLUMN IF NOT EXISTS zip TEXT;`;
+  // Age moved from a single integer to a range (e.g. "25-34"); widen the column if needed.
+  await sql`ALTER TABLE results ALTER COLUMN age TYPE TEXT;`;
   await sql`
     CREATE TABLE IF NOT EXISTS app_settings (
       key   TEXT PRIMARY KEY,

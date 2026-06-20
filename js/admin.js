@@ -209,7 +209,7 @@
     balRow.appendChild(el(
       '<label class="switch"><input type="checkbox" id="balToggle" ' +
       (settings.balancedScoring ? "checked" : "") + ' />' +
-      '<span><strong>Use balanced scoring on the result screen</strong> &mdash; adjusts for the fact that the Clarity statements are easier to agree with, so Drive and Inertia surface when genuinely elevated. Raw scores are always shown too.</span></label>'
+      '<span><strong>Use balanced scoring on the result screen</strong> &mdash; adjusts for the fact that the Sattva statements are easier to agree with, so Rajas and Tamas surface when genuinely elevated. Raw scores are always shown too.</span></label>'
     ));
     card.appendChild(balRow);
 
@@ -456,8 +456,8 @@
         Name: r.name || "", Email: r.email || "", Age: r.age != null ? r.age : "", Zip: r.zip || "", Phone: r.phone || "",
         AccessCode: r.accessCode || "",
         Dominant: modeName(r.dominant),
-        ClarityPct: r.pct ? r.pct.goodness : "", DrivePct: r.pct ? r.pct.passion : "", InertiaPct: r.pct ? r.pct.ignorance : "",
-        ClarityRaw: r.raw ? r.raw.goodness : "", DriveRaw: r.raw ? r.raw.passion : "", InertiaRaw: r.raw ? r.raw.ignorance : "",
+        SattvaPct: r.pct ? r.pct.goodness : "", RajasPct: r.pct ? r.pct.passion : "", TamasPct: r.pct ? r.pct.ignorance : "",
+        SattvaRaw: r.raw ? r.raw.goodness : "", RajasRaw: r.raw ? r.raw.passion : "", TamasRaw: r.raw ? r.raw.ignorance : "",
         TimeToComplete: fmtDuration(r.durationMs), TakenAt: r.takenAt || ""
       };
     });
