@@ -25,7 +25,7 @@
           '<div class="landing-left">' +
             '<h1 class="landing-title">The Vedic Personality Reading</h1>' +
             '<p class="landing-sub">Discover your dominant quality of nature — a living blend of Sattva, Rajas and Tamas.</p>' +
-            '<button class="btn" id="goToForm">Take the Reading &rarr;</button>' +
+            '<button class="btn btn-lg" id="goToForm">Take the Reading &rarr;</button>' +
           '</div>' +
           '<div class="landing-right">' +
             '<div class="stats-label">Live Reading Stats</div>' +

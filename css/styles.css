@@ -25,9 +25,10 @@ body {
   background-image:
     radial-gradient(ellipse 65% 55% at 15% 20%, rgba(123, 79, 255, 0.4), transparent 60%),
     radial-gradient(ellipse 60% 50% at 85% 15%, rgba(216, 99, 178, 0.3), transparent 60%),
-    radial-gradient(ellipse 65% 60% at 50% 100%, rgba(58, 99, 255, 0.3), transparent 60%);
+    radial-gradient(ellipse 65% 60% at 50% 100%, rgba(58, 99, 255, 0.3), transparent 60%),
+    radial-gradient(ellipse 45% 40% at 65% 75%, rgba(217, 179, 95, 0.16), transparent 60%);
   background-attachment: fixed;
-  background-size: 220% 220%, 220% 220%, 220% 220%;
+  background-size: 220% 220%, 220% 220%, 220% 220%, 220% 220%;
   animation: nebulaDrift 15s ease-in-out infinite alternate;
 }
 body::before {
@@ -45,13 +46,29 @@ body::before {
     radial-gradient(1.8px 1.8px at 85% 18%, #fff, transparent 60%),
     radial-gradient(1.3px 1.3px at 93% 70%, #fff, transparent 60%),
     radial-gradient(1.2px 1.2px at 15% 90%, #fff, transparent 60%),
-    radial-gradient(1.6px 1.6px at 66% 92%, #fff, transparent 60%);
-  opacity: .6;
+    radial-gradient(1.6px 1.6px at 66% 92%, #fff, transparent 60%),
+    radial-gradient(1px 1px at 4% 48%, #fff, transparent 60%),
+    radial-gradient(2.1px 2.1px at 29% 38%, #fff, transparent 60%),
+    radial-gradient(1px 1px at 43% 64%, #fff, transparent 60%),
+    radial-gradient(1.4px 1.4px at 53% 8%, #fff, transparent 60%),
+    radial-gradient(1px 1px at 70% 30%, #fff, transparent 60%),
+    radial-gradient(1.8px 1.8px at 80% 88%, #fff, transparent 60%),
+    radial-gradient(1.1px 1.1px at 96% 40%, #fff, transparent 60%),
+    radial-gradient(1.3px 1.3px at 11% 6%, #fff, transparent 60%);
+  opacity: .65;
   animation: twinkle 3.5s ease-in-out infinite alternate, starDrift 28s linear infinite;
 }
+body::after {
+  content: "";
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, .5) 1px, transparent 0);
+  background-size: 5px 5px;
+  opacity: .05;
+  mix-blend-mode: overlay;
+}
 @keyframes nebulaDrift {
-  0%   { background-position: 0% 0%, 100% 0%, 50% 100%; }
-  100% { background-position: 45% 55%, 85% 60%, 90% 90%; }
+  0%   { background-position: 0% 0%, 100% 0%, 50% 100%, 20% 60%; }
+  100% { background-position: 45% 55%, 85% 60%, 90% 90%, 55% 20%; }
 }
 @keyframes twinkle { from { opacity: .3; } to { opacity: .9; } }
 @keyframes starDrift { from { background-position: 0 0; } to { background-position: -480px -480px; } }
@@ -142,38 +159,38 @@ p.lead { color: var(--muted); margin-top: 0; font-size: 17px; }
 }
 .landing-sub { color: var(--muted); font-size: 18px; margin: 0 0 26px; max-width: 480px; }
 .landing-right { text-align: left; }
-.stats-label { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent-bright); margin-bottom: 14px; font-weight: 600; }
-.landing-question { color: var(--ink); font-size: 17px; font-style: italic; margin-top: 18px; }
+.stats-label { font-size: 15px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent-bright); margin-bottom: 16px; font-weight: 600; }
+.landing-question { color: var(--ink); font-size: 19px; font-style: italic; margin-top: 20px; }
 .scroll-hint { text-align: center; color: var(--muted); font-size: 13px; margin: 6px 0 36px; opacity: .8; animation: bob 2.4s ease-in-out infinite; }
 @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
 
-/* "Crowd" pictogram: 100 dots, color-split by average guna percentage */
-.crowd-viz { display: flex; align-items: center; gap: 30px; flex-wrap: wrap; }
+/* "Crowd" pictogram: 100 dots, color-split by average guna percentage — a loose
+   blob cluster, not clipped to a circle. */
+.crowd-viz { display: flex; align-items: center; gap: 34px; flex-wrap: wrap; }
 .crowd-blob {
-  width: 220px; height: 220px; border-radius: 50%; overflow: hidden;
-  display: flex; flex-wrap: wrap; align-content: flex-start; gap: 4px; padding: 8px;
-  background: rgba(255, 255, 255, .03); flex: 0 0 auto;
+  max-width: 360px;
+  display: flex; flex-wrap: wrap; gap: 6px; flex: 0 0 auto;
 }
 .crowd-dot {
   --c: #fff;
-  width: 17px; height: 17px; border-radius: 50%; flex: 0 0 auto;
+  width: 26px; height: 26px; border-radius: 50%; flex: 0 0 auto;
   background: var(--c);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--c) 70%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--c) 70%, transparent);
 }
-.crowd-legend { display: flex; flex-direction: column; gap: 12px; }
-.legend-item { display: flex; align-items: center; gap: 10px; color: var(--ink); font-size: 16px; }
-.legend-item strong { color: var(--accent-bright); font-family: "Playfair Display", serif; font-size: 18px; }
-.legend-dot { width: 13px; height: 13px; border-radius: 50%; box-shadow: 0 0 8px currentColor; flex: 0 0 auto; }
+.crowd-legend { display: flex; flex-direction: column; gap: 14px; }
+.legend-item { display: flex; align-items: center; gap: 12px; color: var(--ink); font-size: 20px; }
+.legend-item strong { color: var(--accent-bright); font-family: "Playfair Display", serif; font-size: 22px; }
+.legend-dot { width: 18px; height: 18px; border-radius: 50%; box-shadow: 0 0 8px currentColor; flex: 0 0 auto; }
 
 @media (min-width: 880px) and (orientation: landscape) {
+  .landing { display: grid; grid-template-columns: 1fr min(1500px, 92vw) 1fr; }
+  .landing-hero, .scroll-hint, .guna-section { grid-column: 2; }
   .landing-hero {
-    flex-direction: row; align-items: center; justify-content: space-between; gap: 40px;
-    width: 100vw; margin-left: calc(50% - 50vw);
-    padding-left: clamp(24px, 6vw, 100px); padding-right: clamp(24px, 6vw, 100px);
+    flex-direction: row; align-items: center; justify-content: center; gap: 70px;
   }
-  .landing-left { flex: 0 1 580px; }
-  .landing-right { flex: 0 1 480px; }
-  .landing-title { font-size: 66px; }
+  .landing-left { flex: 0 1 640px; }
+  .landing-right { flex: 0 1 540px; }
+  .landing-title { font-size: 88px; }
 }
 
 /* Interactive Sattva / Rajas / Tamas graphic — below the fold on the landing screen */
@@ -256,6 +273,7 @@ p.lead { color: var(--muted); margin-top: 0; font-size: 17px; }
 }
 .btn.ghost:hover { background: linear-gradient(165deg, rgba(255, 255, 255, .26), rgba(255, 255, 255, .08)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .3); }
 .btn.small { padding: 9px 16px; font-size: 14px; }
+.btn.btn-lg { padding: 18px 36px; font-size: 19px; }
 .btn-row { display: flex; gap: 12px; justify-content: space-between; margin-top: 22px; }
 
 /* Progress */
