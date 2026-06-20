@@ -358,13 +358,13 @@
         '<div class="card modal-card">' +
           '<div class="no-print" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">' +
             '<h2 style="margin:0">' + esc(r.name) + '&rsquo;s Reading</h2>' +
-            '<div style="display:flex;gap:8px">' +
-              '<button class="btn ghost small" id="exportProfilePdf">&#11015; PDF</button>' +
-              '<button class="link-btn" id="closeProfile" aria-label="Close">&#10005;</button>' +
-            '</div>' +
+            '<button class="link-btn" id="closeProfile" aria-label="Close">&#10005;</button>' +
           '</div>' +
           '<h2 class="print-only">' + esc(r.name) + '&rsquo;s Reading</h2>' +
           profileHtml(r) +
+          '<div class="btn-row no-print" style="justify-content:center;margin-top:24px">' +
+            '<button class="btn ghost" id="exportProfilePdf">&#11015; Download / Print as PDF</button>' +
+          '</div>' +
         '</div>' +
       '</div>'
     );
