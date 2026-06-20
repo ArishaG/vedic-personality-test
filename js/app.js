@@ -11,6 +11,97 @@
     });
   }
 
+  /* ---------- Landing (wide/landscape screens only) ---------- */
+  function isWideLandscape() {
+    return window.matchMedia && window.matchMedia("(min-width: 880px) and (orientation: landscape)").matches;
+  }
+
+  function renderLanding() {
+    state = { person: null, answers: [], index: 0, startTime: null };
+    view.innerHTML = "";
+    var section = el(
+      '<div class="landing">' +
+        '<div class="landing-hero">' +
+          '<div class="landing-left">' +
+            '<h1 class="landing-title">The Vedic Personality Reading</h1>' +
+            '<p class="landing-sub">Discover your dominant quality of nature — a living blend of Sattva, Rajas and Tamas.</p>' +
+            '<button class="btn" id="goToForm">Take the Reading &rarr;</button>' +
+          '</div>' +
+          '<div class="landing-right">' +
+            '<div class="stats-label">Live Reading Stats</div>' +
+            '<div id="statsArea"><p class="muted">Loading live stats&hellip;</p></div>' +
+            '<p class="landing-question">Curious how your inner balance compares?</p>' +
+          '</div>' +
+        '</div>' +
+        '<div class="scroll-hint">Scroll to explore the three gunas &#8595;</div>' +
+        '<div class="guna-section" id="gunaSection"></div>' +
+      '</div>'
+    );
+    view.appendChild(section);
+    document.getElementById("goToForm").addEventListener("click", renderWelcome);
+    loadLandingStats();
+    renderGunaSection();
+  }
+
+  function statBlock(num, lbl, color) {
+    return (
+      '<div class="stat-block"><div class="stat-num"' + (color ? ' style="color:' + color + '"' : '') + '>' + num + '</div>' +
+      '<div class="stat-lbl">' + lbl + '</div></div>'
+    );
+  }
+  function statsHtml(data) {
+    var total = (data && data.total) || 0;
+    if (!total) return '<p class="muted">Be the first to take the reading and set the baseline!</p>';
+    var avg = (data && data.avgPct) || {};
+    var dom = (data && data.dominantCounts) || {};
+    var topMode = Object.keys(dom).sort(function (a, b) { return (dom[b] || 0) - (dom[a] || 0); })[0];
+    var topInfo = topMode && dom[topMode] ? VPI.ANALYSIS[topMode] : null;
+    return (
+      '<div class="stats-grid">' +
+        statBlock(total, "Readings taken") +
+        statBlock((avg.goodness != null ? avg.goodness : "—") + "%", "Avg Sattva", VPI.ANALYSIS.goodness.color) +
+        statBlock((avg.passion != null ? avg.passion : "—") + "%", "Avg Rajas", VPI.ANALYSIS.passion.color) +
+        statBlock((avg.ignorance != null ? avg.ignorance : "—") + "%", "Avg Tamas", VPI.ANALYSIS.ignorance.color) +
+      '</div>' +
+      (topInfo ? '<p class="landing-fact muted">Most readers lean toward <strong style="color:' + topInfo.color + '">' + topInfo.name + '</strong>.</p>' : '')
+    );
+  }
+  function loadLandingStats() {
+    var area = document.getElementById("statsArea");
+    fetch("/api/stats").then(function (r) { return r.json(); })
+      .then(function (data) { if (area) area.innerHTML = statsHtml(data); })
+      .catch(function () { if (area) area.innerHTML = '<p class="muted">Stats unavailable right now.</p>'; });
+  }
+
+  function renderGunaSection() {
+    var wrap = document.getElementById("gunaSection");
+    if (!wrap) return;
+    wrap.innerHTML =
+      '<div class="section-heading">The Three Gunas</div>' +
+      '<p class="section-sub muted">Every personality is a living blend of these three universal qualities.</p>' +
+      '<div class="guna-grid">' +
+        VPI.MODES.map(function (m) {
+          var a = VPI.ANALYSIS[m];
+          return (
+            '<div class="guna-card" data-mode="' + m + '" style="--c:' + a.color + '">' +
+              '<div class="guna-orb"></div>' +
+              '<div class="guna-name">' + a.name + '</div>' +
+              '<div class="guna-quality">' + esc(a.quality) + ' &middot; ' + esc(a.traditional) + '</div>' +
+              '<p class="guna-blurb">' + esc(a.summary) + '</p>' +
+              '<ul class="guna-traits">' + a.traits.slice(0, 3).map(function (t) { return '<li>' + esc(t) + '</li>'; }).join("") + '</ul>' +
+              '<span class="guna-toggle">Show traits &darr;</span>' +
+            '</div>'
+          );
+        }).join("") +
+      '</div>';
+    Array.prototype.forEach.call(wrap.querySelectorAll(".guna-card"), function (card) {
+      card.addEventListener("click", function () {
+        var open = card.classList.toggle("expanded");
+        card.querySelector(".guna-toggle").innerHTML = open ? "Hide traits &uarr;" : "Show traits &darr;";
+      });
+    });
+  }
+
   /* ---------- Welcome ---------- */
   function renderWelcome() {
     state = { person: null, answers: [], index: 0, startTime: null };
@@ -283,5 +374,10 @@
     window.scrollTo(0, 0);
   }
 
-  window.App = { start: renderWelcome };
+  window.App = {
+    start: function () {
+      if (isWideLandscape()) renderLanding();
+      else renderWelcome();
+    }
+  };
 })();

@@ -130,6 +130,69 @@ p.lead { color: var(--muted); margin-top: 0; font-size: 17px; }
   .welcome-form-panel form { margin: 0; max-width: 420px; }
 }
 
+/* Landing screen (wide/landscape only — phones go straight to the form) */
+.landing-hero {
+  display: flex; flex-direction: column; gap: 28px;
+  min-height: calc(100vh - 160px); justify-content: center;
+}
+.landing-left { text-align: left; }
+.landing-title {
+  font-family: "Playfair Display", serif; font-weight: 800; font-size: 40px; line-height: 1.1;
+  margin: 0 0 14px; color: var(--ink); text-shadow: 0 0 30px rgba(217, 179, 95, .25);
+}
+.landing-sub { color: var(--muted); font-size: 18px; margin: 0 0 26px; max-width: 480px; }
+.landing-right { text-align: left; }
+.stats-label { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent-bright); margin-bottom: 12px; font-weight: 600; }
+.stats-grid { display: flex; gap: 30px; flex-wrap: wrap; margin-bottom: 14px; }
+.stat-block .stat-num {
+  font-family: "Playfair Display", serif; font-size: 34px; font-weight: 800;
+  background: linear-gradient(135deg, var(--accent-bright), var(--accent));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.stat-block .stat-lbl { color: var(--muted); font-size: 13px; margin-top: 2px; }
+.landing-fact { margin-top: 6px; }
+.landing-question { color: var(--ink); font-size: 17px; font-style: italic; margin-top: 16px; }
+.scroll-hint { text-align: center; color: var(--muted); font-size: 13px; margin: 6px 0 36px; opacity: .8; animation: bob 2.4s ease-in-out infinite; }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+
+@media (min-width: 880px) and (orientation: landscape) {
+  .landing-hero { flex-direction: row; align-items: center; gap: 64px; }
+  .landing-left, .landing-right { flex: 1 1 50%; }
+  .landing-title { font-size: 54px; }
+}
+
+/* Interactive Sattva / Rajas / Tamas graphic — below the fold on the landing screen */
+.guna-section { padding: 10px 0 50px; }
+.section-heading { font-family: "Playfair Display", serif; font-size: 28px; text-align: center; color: var(--ink); margin-bottom: 6px; }
+.section-sub { text-align: center; margin: 0 0 30px; }
+.guna-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 22px; }
+.guna-card {
+  --c: #fff;
+  background: linear-gradient(165deg, rgba(255, 255, 255, .1), rgba(255, 255, 255, .02));
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 22px; padding: 26px; cursor: pointer;
+  backdrop-filter: blur(16px) saturate(160%); -webkit-backdrop-filter: blur(16px) saturate(160%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16);
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.guna-card:hover { transform: translateY(-3px); border-color: var(--c); box-shadow: 0 12px 32px color-mix(in srgb, var(--c) 30%, transparent), inset 0 1px 0 rgba(255, 255, 255, .2); }
+.guna-orb {
+  width: 46px; height: 46px; border-radius: 50%; margin-bottom: 16px;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--c) 70%, white), var(--c) 60%);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--c) 60%, transparent);
+}
+.guna-name { font-family: "Playfair Display", serif; font-size: 25px; font-weight: 700; color: var(--c); }
+.guna-quality { font-size: 12px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin: 3px 0 14px; }
+.guna-blurb { color: var(--muted); font-size: 14.5px; line-height: 1.55; margin: 0; }
+.guna-traits {
+  list-style: none; padding: 0; margin: 0; max-height: 0; opacity: 0; overflow: hidden;
+  transition: max-height .3s ease, opacity .3s ease, margin .3s ease;
+}
+.guna-card.expanded .guna-traits { max-height: 240px; opacity: 1; margin-top: 14px; }
+.guna-traits li { font-size: 13.5px; color: var(--ink); padding: 7px 0; border-top: 1px solid rgba(255, 255, 255, .1); }
+.guna-traits li:first-child { border-top: none; }
+.guna-toggle { display: inline-block; margin-top: 14px; font-size: 12.5px; color: var(--accent-bright); font-weight: 600; }
+
 /* Form */
 .field { margin-bottom: 16px; text-align: left; }
 .field label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; color: var(--muted); }
@@ -146,6 +209,11 @@ p.lead { color: var(--muted); margin-top: 0; font-size: 17px; }
   outline: none; border-color: rgba(217, 179, 95, .6);
   background: linear-gradient(165deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, .04));
   box-shadow: 0 0 0 3px rgba(217, 179, 95, .18), inset 0 1px 0 rgba(255, 255, 255, .2);
+}
+/* Native <option> popups ignore the translucent background — force a solid,
+   readable surface so the dropdown list itself isn't light-on-light. */
+.field select option, .toolbar select option {
+  background: #150b35; color: #f1ecff;
 }
 .field .err { color: #ff8a8a; font-size: 13px; margin-top: 4px; display: none; }
 .field.invalid .err { display: block; }
