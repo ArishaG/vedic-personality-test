@@ -65,7 +65,7 @@ window.VPI = (function () {
       name: "Sattva",
       quality: "Clarity",
       traditional: "Goodness",
-      color: "#4ade80",
+      color: "var(--goodness)",
       summary: "The quality of clarity, balance and harmony (traditionally called Goodness, or Sattva). It is associated with calm, knowledge, self-control, healthy living, compassion and a natural pull toward purpose and meaning.",
       traits: [
         "Calm, steady and content regardless of ups and downs",
@@ -82,7 +82,7 @@ window.VPI = (function () {
       name: "Rajas",
       quality: "Drive",
       traditional: "Passion",
-      color: "#f0975a",
+      color: "var(--passion)",
       summary: "The quality of energy, ambition and activity (traditionally called Passion, or Rajas). It fuels desire, achievement and constant motion, but can also bring restlessness, attachment to results and anxiety.",
       traits: [
         "Driven, ambitious and hard-working",
@@ -99,7 +99,7 @@ window.VPI = (function () {
       name: "Tamas",
       quality: "Inertia",
       traditional: "Ignorance",
-      color: "#9b8fc0",
+      color: "var(--ignorance)",
       summary: "The quality of inertia, heaviness and low momentum (traditionally called Ignorance, or Tamas). It can show up as procrastination, discouragement, neglected duties and difficulty finding motivation.",
       traits: [
         "Tendency to delay or avoid responsibilities",

@@ -20,6 +20,7 @@
 }
 
 [data-theme="light"] {
+  --goodness: #1f9d55;
   --ink: #241a3d;
   --muted: #6b6285;
   --line: rgba(36, 26, 61, 0.16);
