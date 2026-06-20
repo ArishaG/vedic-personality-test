@@ -76,11 +76,11 @@ export async function setSetting(key, value) {
 // Access codes — each one lets exactly one person take the test. Codes are only
 // claimed (marked used) at final submission, so an abandoned attempt doesn't
 // waste a code; /api/check-code does an early, non-consuming check.
-const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no I, O, 0, 1 — easy to read off a printout
+const CODE_CHARS = '0123456789'; // numeric only — fast to type on a phone keypad
 
 function randomCode() {
   let s = '';
-  for (let i = 0; i < 6; i++) s += CODE_CHARS[crypto.randomInt(CODE_CHARS.length)];
+  for (let i = 0; i < 4; i++) s += CODE_CHARS[crypto.randomInt(CODE_CHARS.length)];
   return s;
 }
 

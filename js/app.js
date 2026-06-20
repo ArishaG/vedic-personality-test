@@ -22,7 +22,7 @@
         '<p class="lead">Answer 36 quick statements. Takes about 5 minutes. Your result reveals your balance of ' +
         'three inner qualities — Clarity, Drive and Inertia.</p>' +
         '<form id="who" style="max-width:480px;margin:18px auto 0;">' +
-          field("code", "Access code", "text", true, 'maxlength="6" autocapitalize="characters" autocorrect="off" spellcheck="false" style="text-transform:uppercase;letter-spacing:2px"') +
+          field("code", "Access code", "tel", true, 'maxlength="4" inputmode="numeric" pattern="[0-9]*" style="letter-spacing:4px"') +
           field("name", "Full name", "text", true) +
           field("email", "Email", "email", true) +
           field("age", "Age", "number", true) +
