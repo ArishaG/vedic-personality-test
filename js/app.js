@@ -16,66 +16,30 @@
     state = { person: null, answers: [], index: 0, startTime: null };
     view.innerHTML = "";
     var card = el(
-      '<div class="card center mystical">' +
-        '<span class="hero-badge">The Vedic Personality Reading</span>' +
-        '<h2>Discover your dominant quality of nature</h2>' +
-        '<p class="lead">Answer 36 quick statements. Takes about 5 minutes. Your reading reveals your balance of ' +
-        'three inner qualities — Sattva, Rajas and Tamas.</p>' +
-        gunaWheel() +
-        '<div class="guna-detail" id="gunaDetail"></div>' +
-        '<form id="who" style="max-width:480px;margin:26px auto 0;">' +
-          field("code", "Access code", "tel", true, 'maxlength="4" inputmode="numeric" pattern="[0-9]*" style="letter-spacing:4px"') +
-          field("name", "Full name", "text", true) +
-          field("email", "Email", "email", true) +
-          selectField("age", "Age", ageOptions(), true) +
-          field("zip", "Zip code", "text", true, 'maxlength="10" inputmode="numeric"') +
-          field("phone", "Phone", "tel", false) +
-          '<button class="btn" type="submit" style="width:100%;margin-top:10px;">Begin the Reading &rarr;</button>' +
-        '</form>' +
+      '<div class="card mystical welcome-card">' +
+        '<div class="welcome-grid">' +
+          '<div class="welcome-hero">' +
+            '<span class="hero-badge">The Vedic Personality Reading</span>' +
+            '<h2>Discover your dominant quality of nature</h2>' +
+            '<p class="lead">Answer 36 quick statements. Takes about 5 minutes. Your reading reveals your balance of ' +
+            'three inner qualities — Sattva, Rajas and Tamas.</p>' +
+          '</div>' +
+          '<div class="welcome-form-panel">' +
+            '<form id="who">' +
+              field("code", "Access code", "tel", true, 'maxlength="4" inputmode="numeric" pattern="[0-9]*" style="letter-spacing:4px"') +
+              field("name", "Full name", "text", true) +
+              field("email", "Email", "email", true) +
+              selectField("age", "Age", ageOptions(), true) +
+              field("zip", "Zip code", "text", true, 'maxlength="10" inputmode="numeric"') +
+              field("phone", "Phone", "tel", false) +
+              '<button class="btn" type="submit" style="width:100%;margin-top:10px;">Begin the Reading &rarr;</button>' +
+            '</form>' +
+          '</div>' +
+        '</div>' +
       '</div>'
     );
     view.appendChild(card);
-    wireGunaWheel();
     document.getElementById("who").addEventListener("submit", onWelcomeSubmit);
-  }
-
-  /* ---------- Interactive Sattva / Rajas / Tamas graphic ---------- */
-  function gunaWheel() {
-    return (
-      '<div class="guna-wheel" id="gunaWheel">' +
-        VPI.MODES.map(function (m) {
-          var a = VPI.ANALYSIS[m];
-          return (
-            '<button type="button" class="guna-seg" data-mode="' + m + '" style="--c:' + a.color + '">' +
-              '<span class="guna-name">' + a.name + '</span>' +
-              '<span class="guna-quality">' + esc(a.quality) + '</span>' +
-            '</button>'
-          );
-        }).join("") +
-      '</div>'
-    );
-  }
-  function gunaDetailHtml(mode) {
-    var a = VPI.ANALYSIS[mode];
-    return (
-      '<div class="guna-detail-inner" style="--c:' + a.color + '">' +
-        '<strong>' + a.name + '</strong> <span class="muted">(' + esc(a.quality) + ' &middot; ' + esc(a.traditional) + ')</span>' +
-        '<p>' + esc(a.summary) + '</p>' +
-      '</div>'
-    );
-  }
-  function wireGunaWheel() {
-    var wheel = document.getElementById("gunaWheel");
-    var detail = document.getElementById("gunaDetail");
-    function select(mode, btn) {
-      Array.prototype.forEach.call(wheel.querySelectorAll(".guna-seg"), function (b) { b.classList.remove("active"); });
-      btn.classList.add("active");
-      detail.innerHTML = gunaDetailHtml(mode);
-    }
-    Array.prototype.forEach.call(wheel.querySelectorAll(".guna-seg"), function (btn) {
-      btn.addEventListener("click", function () { select(btn.getAttribute("data-mode"), btn); });
-    });
-    select("goodness", wheel.querySelector('[data-mode="goodness"]'));
   }
 
   var AGE_RANGES = ["Under 18", "18-24", "25-34", "35-44", "45-54", "55-64", "65+"];
