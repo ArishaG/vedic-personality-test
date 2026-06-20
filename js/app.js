@@ -43,27 +43,47 @@
     renderGunaSection();
   }
 
-  function statBlock(num, lbl, color) {
+  function legendItem(color, name, pct) {
     return (
-      '<div class="stat-block"><div class="stat-num"' + (color ? ' style="color:' + color + '"' : '') + '>' + num + '</div>' +
-      '<div class="stat-lbl">' + lbl + '</div></div>'
+      '<div class="legend-item"><span class="legend-dot" style="background:' + color + '"></span>' +
+      name + ' <strong>' + (pct != null ? pct : "—") + '%</strong></div>'
     );
   }
+  // Builds a 100-dot "crowd" pictogram, proportioned and color-coded by average guna split, shuffled for an organic mix.
+  function buildCrowdDots(g, p, ig) {
+    var total = g + p + ig;
+    var nG = total ? Math.round((g / total) * 100) : 0;
+    var nP = total ? Math.round((p / total) * 100) : 0;
+    var nI = total ? 100 - nG - nP : 0;
+    var arr = [];
+    var i;
+    for (i = 0; i < nG; i++) arr.push(VPI.ANALYSIS.goodness.color);
+    for (i = 0; i < nP; i++) arr.push(VPI.ANALYSIS.passion.color);
+    for (i = 0; i < nI; i++) arr.push(VPI.ANALYSIS.ignorance.color);
+    for (i = arr.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+    }
+    return arr;
+  }
   function statsHtml(data) {
-    var total = (data && data.total) || 0;
-    if (!total) return '<p class="muted">Be the first to take the reading and set the baseline!</p>';
     var avg = (data && data.avgPct) || {};
-    var dom = (data && data.dominantCounts) || {};
-    var topMode = Object.keys(dom).sort(function (a, b) { return (dom[b] || 0) - (dom[a] || 0); })[0];
-    var topInfo = topMode && dom[topMode] ? VPI.ANALYSIS[topMode] : null;
+    var g = avg.goodness, p = avg.passion, ig = avg.ignorance;
+    if (g == null && p == null && ig == null) {
+      return '<p class="muted">Be the first to take the reading and set the baseline!</p>';
+    }
+    var dots = buildCrowdDots(g || 0, p || 0, ig || 0);
     return (
-      '<div class="stats-grid">' +
-        statBlock(total, "Readings taken") +
-        statBlock((avg.goodness != null ? avg.goodness : "—") + "%", "Avg Sattva", VPI.ANALYSIS.goodness.color) +
-        statBlock((avg.passion != null ? avg.passion : "—") + "%", "Avg Rajas", VPI.ANALYSIS.passion.color) +
-        statBlock((avg.ignorance != null ? avg.ignorance : "—") + "%", "Avg Tamas", VPI.ANALYSIS.ignorance.color) +
-      '</div>' +
-      (topInfo ? '<p class="landing-fact muted">Most readers lean toward <strong style="color:' + topInfo.color + '">' + topInfo.name + '</strong>.</p>' : '')
+      '<div class="crowd-viz">' +
+        '<div class="crowd-blob">' +
+          dots.map(function (c) { return '<span class="crowd-dot" style="--c:' + c + '"></span>'; }).join("") +
+        '</div>' +
+        '<div class="crowd-legend">' +
+          legendItem(VPI.ANALYSIS.goodness.color, "Sattva", g) +
+          legendItem(VPI.ANALYSIS.passion.color, "Rajas", p) +
+          legendItem(VPI.ANALYSIS.ignorance.color, "Tamas", ig) +
+        '</div>' +
+      '</div>'
     );
   }
   function loadLandingStats() {
