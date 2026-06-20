@@ -390,9 +390,13 @@
           esc(VPI.ANALYSIS.ignorance.name) + ' ' + result.raw.ignorance + ' (' + result.pct.ignorance + '%)</p>' +
         (offline ? '<p class="muted" style="font-size:13px">(You appear to be offline — your result is shown here but may not have been saved centrally.)</p>' : '') +
         v.order.map(analysisBlock).join("") +
+        '<div class="btn-row no-print" style="justify-content:center;margin-top:24px">' +
+          '<button class="btn ghost" id="exportPdf">&#11015; Download / Print as PDF</button>' +
+        '</div>' +
       '</div>'
     );
     view.appendChild(card);
+    document.getElementById("exportPdf").addEventListener("click", function () { window.print(); });
     window.scrollTo(0, 0);
   }
 

@@ -445,3 +445,25 @@ code { background: rgba(var(--fill-rgb), .08); padding: 2px 6px; border-radius: 
 body { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
 .field input, .field select, .toolbar input, .toolbar select { font-size: 18px; }
 #qrWrap img { width: 220px; height: 220px; image-rendering: pixelated; background: #fff; padding: 10px; border-radius: 12px; box-shadow: 0 0 24px rgba(217, 179, 95, .4); }
+
+/* Export to PDF — uses the browser's native print-to-PDF rather than a JS
+   PDF library, so it works everywhere with no extra download. Works for both
+   the taker's own result screen and the facilitator's profile modal. */
+.print-only { display: none; }
+@media print {
+  :root, [data-theme="light"] { --ink: #18121f; --muted: #4a4458; --bg: #fff; --card: #fff; }
+  body { background: none !important; }
+  body::before, body::after { display: none !important; }
+  .app-header, .scroll-hint, .guna-section, .no-print { display: none !important; }
+  .print-only { display: block; }
+  .card {
+    box-shadow: none !important; border: 1px solid #ccc !important;
+    backdrop-filter: none !important; background: #fff !important;
+  }
+  .modal-backdrop {
+    position: static !important; background: none !important; padding: 0 !important;
+  }
+  .modal-card { max-height: none !important; overflow: visible !important; margin: 0 !important; }
+  body:has(.modal-backdrop) > main.wrap { display: none !important; }
+  .analysis-block { page-break-inside: avoid; }
+}

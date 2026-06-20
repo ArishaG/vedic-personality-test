@@ -356,16 +356,21 @@
     var overlay = el(
       '<div class="modal-backdrop" id="profileModal">' +
         '<div class="card modal-card">' +
-          '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">' +
+          '<div class="no-print" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">' +
             '<h2 style="margin:0">' + esc(r.name) + '&rsquo;s Reading</h2>' +
-            '<button class="link-btn" id="closeProfile" aria-label="Close">&#10005;</button>' +
+            '<div style="display:flex;gap:8px">' +
+              '<button class="btn ghost small" id="exportProfilePdf">&#11015; PDF</button>' +
+              '<button class="link-btn" id="closeProfile" aria-label="Close">&#10005;</button>' +
+            '</div>' +
           '</div>' +
+          '<h2 class="print-only">' + esc(r.name) + '&rsquo;s Reading</h2>' +
           profileHtml(r) +
         '</div>' +
       '</div>'
     );
     document.body.appendChild(overlay);
     document.getElementById("closeProfile").addEventListener("click", closeProfile);
+    document.getElementById("exportProfilePdf").addEventListener("click", function () { window.print(); });
     overlay.addEventListener("click", function (e) { if (e.target === overlay) closeProfile(); });
   }
   function closeProfile() {
