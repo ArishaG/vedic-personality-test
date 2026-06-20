@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0a0420" />
   <title>The Vedic Personality Reading</title>
+  <script>
+    // Applied before first paint to avoid a flash of the wrong theme.
+    (function () {
+      if (localStorage.getItem("vpr-theme") === "light") {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -22,6 +30,7 @@
     <nav>
       <button class="link-btn" id="navTest">Take the Reading</button>
       <button class="link-btn" id="navAdmin">Facilitator</button>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark mode" title="Toggle light/dark mode"></button>
     </nav>
   </header>
 
@@ -45,6 +54,28 @@
       window.Router = Router;
       document.getElementById("navTest").addEventListener("click", function () { Router.go("test"); });
       document.getElementById("navAdmin").addEventListener("click", function () { Router.go("admin"); });
+
+      // Light/dark mode — a per-visitor preference (not a facilitator setting),
+      // saved locally so it persists across visits on the same device.
+      var themeToggle = document.getElementById("themeToggle");
+      var themeColorMeta = document.querySelector('meta[name="theme-color"]');
+      function applyTheme(theme) {
+        if (theme === "light") {
+          document.documentElement.setAttribute("data-theme", "light");
+          themeToggle.innerHTML = "&#127769;&nbsp;Dark mode";
+          if (themeColorMeta) themeColorMeta.setAttribute("content", "#f7f1e6");
+        } else {
+          document.documentElement.removeAttribute("data-theme");
+          themeToggle.innerHTML = "&#9728;&nbsp;Light mode";
+          if (themeColorMeta) themeColorMeta.setAttribute("content", "#0a0420");
+        }
+        localStorage.setItem("vpr-theme", theme);
+      }
+      applyTheme(localStorage.getItem("vpr-theme") === "light" ? "light" : "dark");
+      themeToggle.addEventListener("click", function () {
+        applyTheme(document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light");
+      });
+
       // Allow deep-linking to the dashboard with #admin
       if (location.hash.replace("#", "") === "admin") Router.go("admin");
       else Router.go("test");

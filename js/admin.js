@@ -277,7 +277,7 @@
         var diff = Math.round((v - a) * 10) / 10, sign = diff > 0 ? "+" : "", cls = diff >= 0 ? "good" : "bad";
         return '<td><span style="color:' + color(mode) + '">' + v + '%</span> <small class="' + cls + '">(' + sign + diff + ')</small></td>';
       }
-      return '<tr>' +
+      return '<tr class="row-clickable" data-profile="' + esc(r.id) + '">' +
         '<td><strong>' + esc(r.name) + '</strong><br><small class="muted">' + esc(r.email || "") +
           (r.zip ? " &middot; " + esc(r.zip) : "") + (r.phone ? " &middot; " + esc(r.phone) : "") + '</small></td>' +
         '<td>' + esc(r.age != null ? r.age : "") + '</td>' +
@@ -292,7 +292,85 @@
       '<th>Name</th><th>Age</th><th>Dominant</th><th>' + modeName("goodness") + '</th><th>' +
       modeName("passion") + '</th><th>' + modeName("ignorance") + '</th><th>Time</th><th>Date taken</th><th></th>' +
       '</tr></thead><tbody>' + rows + '</tbody></table>' +
-      '<p class="muted" style="font-size:12px">Numbers in (parentheses) show how each person compares to the group average for this date range.</p></div>';
+      '<p class="muted" style="font-size:12px">Numbers in (parentheses) show how each person compares to the group average for this date range. Click a row to see their full reading.</p></div>';
+  }
+
+  /* ---------- full profile modal (click a row in Records) ---------- */
+  function profileModeBar(mode, pct) {
+    var a = VPI.ANALYSIS[mode];
+    return (
+      '<div class="modebar">' +
+        '<div class="top"><span class="name">' + a.name + ' <small>(' + esc(a.quality) + ' &middot; ' + a.traditional + ')</small></span>' +
+        '<span class="val" style="color:' + a.color + '">' + pct + '%</span></div>' +
+        '<div class="track"><span style="width:' + pct + '%;background:' + a.color + '"></span></div>' +
+      '</div>'
+    );
+  }
+  function profileAnalysisBlock(mode) {
+    var a = VPI.ANALYSIS[mode];
+    return (
+      '<div class="analysis-block">' +
+        '<span class="pill" style="background:' + a.color + '">' + a.name + ' &middot; ' + a.traditional + '</span>' +
+        '<p>' + esc(a.summary) + '</p>' +
+        '<div class="sub">Typical traits</div>' +
+        '<ul>' + a.traits.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join("") + '</ul>' +
+        '<div class="sub">Strengths</div><p>' + esc(a.strengths) + '</p>' +
+        '<div class="sub">Where to grow</div><p>' + esc(a.growth) + '</p>' +
+        '<div class="sub">Supportive lifestyle</div><p>' + esc(a.lifestyle) + '</p>' +
+      '</div>'
+    );
+  }
+  function profileHtml(r) {
+    var raw = r.raw || {};
+    var maxRaw = Math.max(raw.goodness || 0, raw.passion || 0, raw.ignorance || 0);
+    var leaders = VPI.MODES.filter(function (m) { return raw[m] === maxRaw; });
+    var result = { raw: raw, pct: r.pct || {}, dominant: r.dominant, tie: leaders.length > 1 };
+    var v = VPI.resultView(result, false);
+    var dom = VPI.ANALYSIS[v.dominant];
+    var headline = v.tie
+      ? "Their qualities are evenly balanced &mdash; no single one stands out."
+      : "Their " + (v.close ? "leading" : "dominant") + " quality is <strong style=\"color:" + dom.color + "\">" + dom.name + " (" + dom.traditional + ")</strong>.";
+    return (
+      '<div class="profile-meta">' +
+        '<div><span class="muted">Email</span><br>' + esc(r.email || "—") + '</div>' +
+        '<div><span class="muted">Age</span><br>' + esc(r.age != null && r.age !== "" ? r.age : "—") + '</div>' +
+        '<div><span class="muted">Zip</span><br>' + esc(r.zip || "—") + '</div>' +
+        '<div><span class="muted">Phone</span><br>' + esc(r.phone || "—") + '</div>' +
+        '<div><span class="muted">Access code</span><br>' + esc(r.accessCode || "—") + '</div>' +
+        '<div><span class="muted">Time to complete</span><br>' + fmtDuration(r.durationMs) + '</div>' +
+        '<div><span class="muted">Taken</span><br>' + fmtDate(r.takenAt) + '</div>' +
+      '</div>' +
+      '<p class="lead" style="margin-top:18px">' + headline + '</p>' +
+      v.order.map(function (m) { return profileModeBar(m, v.pct[m]); }).join("") +
+      '<p class="muted" style="font-size:13px;margin-top:10px">Raw scores (each area 12&ndash;84): ' +
+        VPI.ANALYSIS.goodness.name + ' ' + (raw.goodness != null ? raw.goodness : "—") + ' &middot; ' +
+        VPI.ANALYSIS.passion.name + ' ' + (raw.passion != null ? raw.passion : "—") + ' &middot; ' +
+        VPI.ANALYSIS.ignorance.name + ' ' + (raw.ignorance != null ? raw.ignorance : "—") + '</p>' +
+      v.order.map(profileAnalysisBlock).join("")
+    );
+  }
+  function openProfile(id) {
+    var r = records.filter(function (x) { return x.id === id; })[0];
+    if (!r) return;
+    closeProfile();
+    var overlay = el(
+      '<div class="modal-backdrop" id="profileModal">' +
+        '<div class="card modal-card">' +
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">' +
+            '<h2 style="margin:0">' + esc(r.name) + '&rsquo;s Reading</h2>' +
+            '<button class="link-btn" id="closeProfile" aria-label="Close">&#10005;</button>' +
+          '</div>' +
+          profileHtml(r) +
+        '</div>' +
+      '</div>'
+    );
+    document.body.appendChild(overlay);
+    document.getElementById("closeProfile").addEventListener("click", closeProfile);
+    overlay.addEventListener("click", function (e) { if (e.target === overlay) closeProfile(); });
+  }
+  function closeProfile() {
+    var existing = document.getElementById("profileModal");
+    if (existing) existing.remove();
   }
 
   function codesTable(codes) {
@@ -417,11 +495,15 @@
       api("/api/records?all=1", { method: "DELETE" }).then(function () { loadAndRender(); });
     });
     Array.prototype.forEach.call(document.querySelectorAll("[data-del]"), function (b) {
-      b.addEventListener("click", function () {
+      b.addEventListener("click", function (e) {
+        e.stopPropagation();
         if (!confirm("Delete this record?")) return;
         api("/api/records?id=" + encodeURIComponent(b.getAttribute("data-del")), { method: "DELETE" })
           .then(function () { loadAndRender(); });
       });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-profile]"), function (tr) {
+      tr.addEventListener("click", function () { openProfile(tr.getAttribute("data-profile")); });
     });
   }
 
