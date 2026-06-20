@@ -43,10 +43,11 @@
     renderGunaSection();
   }
 
-  function legendItem(color, name, pct) {
+  function legendItem(color, name, quality, pct) {
     return (
       '<div class="legend-item"><span class="legend-dot" style="background:' + color + '"></span>' +
-      name + ' <strong>' + (pct != null ? pct : "—") + '%</strong></div>'
+      '<span>' + name + ' <small class="muted">(' + esc(quality) + ')</small></span> ' +
+      '<strong>' + (pct != null ? pct : "—") + '%</strong></div>'
     );
   }
   // Builds a 100-dot "crowd" pictogram, proportioned and color-coded by average guna split.
@@ -78,9 +79,9 @@
           dots.map(function (c) { return '<span class="crowd-dot" style="--c:' + c + '"></span>'; }).join("") +
         '</div>' +
         '<div class="crowd-legend">' +
-          legendItem(VPI.ANALYSIS.goodness.color, "Sattva", g) +
-          legendItem(VPI.ANALYSIS.passion.color, "Rajas", p) +
-          legendItem(VPI.ANALYSIS.ignorance.color, "Tamas", ig) +
+          legendItem(VPI.ANALYSIS.goodness.color, "Sattva", VPI.ANALYSIS.goodness.quality, g) +
+          legendItem(VPI.ANALYSIS.passion.color, "Rajas", VPI.ANALYSIS.passion.quality, p) +
+          legendItem(VPI.ANALYSIS.ignorance.color, "Tamas", VPI.ANALYSIS.ignorance.quality, ig) +
         '</div>' +
       '</div>' +
       '<p class="landing-stats-note muted">From Veg Fest today, most people were in ' +
