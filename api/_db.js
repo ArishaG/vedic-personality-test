@@ -2,6 +2,7 @@
 // Uses Vercel Postgres (the `@vercel/postgres` SDK reads POSTGRES_URL automatically
 // once you connect a Postgres store to the project in the Vercel dashboard).
 import { sql } from '@vercel/postgres';
+import crypto from 'node:crypto';
 
 let initialized = false;
 
@@ -15,6 +16,7 @@ export async function ensureSchema() {
       email         TEXT,
       age           INTEGER,
       phone         TEXT,
+      access_code   TEXT,
       answers       JSONB,
       raw_goodness  INTEGER,
       raw_passion   INTEGER,
@@ -27,10 +29,19 @@ export async function ensureSchema() {
       taken_at      TIMESTAMPTZ NOT NULL DEFAULT now()
     );
   `;
+  // Migration for tables created before access_code existed.
+  await sql`ALTER TABLE results ADD COLUMN IF NOT EXISTS access_code TEXT;`;
   await sql`
     CREATE TABLE IF NOT EXISTS app_settings (
       key   TEXT PRIMARY KEY,
       value TEXT
+    );
+  `;
+  await sql`
+    CREATE TABLE IF NOT EXISTS access_codes (
+      code       TEXT PRIMARY KEY,
+      used_at    TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
   `;
   // Seed default settings if missing.
@@ -60,6 +71,59 @@ export async function setSetting(key, value) {
     VALUES (${key}, ${value})
     ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
   `;
+}
+
+// Access codes — each one lets exactly one person take the test. Codes are only
+// claimed (marked used) at final submission, so an abandoned attempt doesn't
+// waste a code; /api/check-code does an early, non-consuming check.
+const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no I, O, 0, 1 — easy to read off a printout
+
+function randomCode() {
+  let s = '';
+  for (let i = 0; i < 8; i++) s += CODE_CHARS[crypto.randomInt(CODE_CHARS.length)];
+  return s.slice(0, 4) + '-' + s.slice(4);
+}
+
+export async function createAccessCodes(count) {
+  await ensureSchema();
+  const codes = [];
+  for (let i = 0; i < count; i++) {
+    for (;;) {
+      const code = randomCode();
+      try {
+        await sql`INSERT INTO access_codes (code) VALUES (${code});`;
+        codes.push(code);
+        break;
+      } catch (err) {
+        if (!/duplicate key/i.test(String(err.message))) throw err;
+        // Collision on the tiny chance of a repeat — try another code.
+      }
+    }
+  }
+  return codes;
+}
+
+export async function listAccessCodes() {
+  await ensureSchema();
+  const { rows } = await sql`SELECT code, used_at FROM access_codes ORDER BY created_at DESC;`;
+  return rows.map(function (r) { return { code: r.code, usedAt: r.used_at }; });
+}
+
+export async function accessCodeIsValid(code) {
+  await ensureSchema();
+  const { rows } = await sql`SELECT 1 FROM access_codes WHERE code = ${code} AND used_at IS NULL;`;
+  return rows.length > 0;
+}
+
+// Atomically marks a code used; returns false if it was invalid or already used.
+export async function claimAccessCode(code) {
+  await ensureSchema();
+  const { rows } = await sql`
+    UPDATE access_codes SET used_at = now()
+    WHERE code = ${code} AND used_at IS NULL
+    RETURNING code;
+  `;
+  return rows.length > 0;
 }
 
 // Simple shared-password check for admin endpoints.

@@ -22,6 +22,7 @@
         '<p class="lead">Answer 36 quick statements. Takes about 5 minutes. Your result reveals your balance of ' +
         'three inner qualities — Clarity, Drive and Inertia.</p>' +
         '<form id="who" style="max-width:480px;margin:18px auto 0;">' +
+          field("code", "Access code", "text", true) +
           field("name", "Full name", "text", true) +
           field("email", "Email", "email", true) +
           field("age", "Age", "number", true) +
@@ -48,17 +49,43 @@
 
   function onWelcomeSubmit(e) {
     e.preventDefault();
-    var name = val("name"), email = val("email"), age = val("age"), phone = val("phone");
+    var code = val("code"), name = val("name"), email = val("email"), age = val("age"), phone = val("phone");
     var ok = true;
+    ok = setValid("code", code.length >= 1) && ok;
     ok = setValid("name", name.length >= 1) && ok;
     ok = setValid("email", /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) && ok;
     ok = setValid("age", age !== "" && Number(age) >= 1 && Number(age) <= 120) && ok;
     if (!ok) return;
-    state.person = { name: name, email: email, age: Number(age), phone: phone };
-    state.answers = new Array(VPI.QUESTIONS.length).fill(null);
-    state.index = 0;
-    state.startTime = Date.now();
-    renderQuestion();
+
+    var btn = document.querySelector("#who button[type=submit]");
+    btn.disabled = true;
+    btn.textContent = "Checking code…";
+
+    fetch("/api/check-code", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: code })
+    }).then(function (r) { return r.json().catch(function () { return {}; }); })
+      .then(function (data) {
+        if (!data || !data.ok) {
+          setValid("code", false);
+          document.querySelector("#f_code .err").textContent = (data && data.error) || "Invalid or already-used access code.";
+          btn.disabled = false;
+          btn.textContent = "Start the test →";
+          return;
+        }
+        state.person = { name: name, email: email, age: Number(age), phone: phone, accessCode: code.toUpperCase() };
+        state.answers = new Array(VPI.QUESTIONS.length).fill(null);
+        state.index = 0;
+        state.startTime = Date.now();
+        renderQuestion();
+      })
+      .catch(function () {
+        setValid("code", false);
+        document.querySelector("#f_code .err").textContent = "Could not verify code — check your connection and try again.";
+        btn.disabled = false;
+        btn.textContent = "Start the test →";
+      });
   }
   function val(id) { return document.getElementById(id).value.trim(); }
   function setValid(id, good) {
@@ -132,7 +159,7 @@
     var result = VPI.score(state.answers);
     var payload = {
       name: state.person.name, email: state.person.email,
-      age: state.person.age, phone: state.person.phone,
+      age: state.person.age, phone: state.person.phone, accessCode: state.person.accessCode,
       answers: state.answers, raw: result.raw, pct: result.pct, dominant: result.dominant,
       durationMs: state.startTime ? (Date.now() - state.startTime) : null
     };
@@ -141,8 +168,12 @@
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
-    }).then(function (r) { return r.json().catch(function () { return {}; }); })
-      .then(function (data) {
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (data) {
+        if (!r.ok) throw new Error((data && data.error) || "Save failed");
+        return data;
+      });
+    }).then(function (data) {
         var show = data && data.showResults;
         if (show === undefined) show = true; // fail open
         var balanced = !!(data && data.balancedScoring);
@@ -150,7 +181,8 @@
         else renderThankYou(state.person);
       })
       .catch(function () {
-        // Network failure — still show the result so the taker isn't stuck.
+        // Network failure or server error — still show the result so the taker
+        // isn't stuck, but flag that it may not have been saved centrally.
         renderResult(result, state.person, true, false);
       });
   }
@@ -170,10 +202,8 @@
         '<span class="hero-badge">Thank you, ' + esc(person.name.split(" ")[0]) + '!</span>' +
         '<h2>Your responses have been recorded</h2>' +
         '<p class="lead">Your facilitator will review your results with you shortly.</p>' +
-        '<button class="btn" id="again">Start a new test</button>' +
       '</div>'
     ));
-    document.getElementById("again").addEventListener("click", renderWelcome);
   }
 
   function modeBar(mode, pct) {
@@ -222,13 +252,9 @@
           esc(VPI.ANALYSIS.ignorance.name) + ' ' + result.raw.ignorance + ' (' + result.pct.ignorance + '%)</p>' +
         (offline ? '<p class="muted" style="font-size:13px">(You appear to be offline — your result is shown here but may not have been saved centrally.)</p>' : '') +
         v.order.map(analysisBlock).join("") +
-        '<div class="btn-row" style="justify-content:center;margin-top:24px">' +
-          '<button class="btn" id="again">Take another test</button>' +
-        '</div>' +
       '</div>'
     );
     view.appendChild(card);
-    document.getElementById("again").addEventListener("click", renderWelcome);
     window.scrollTo(0, 0);
   }
 

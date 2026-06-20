@@ -1,6 +1,6 @@
 // POST /api/submit  — public. Saves one completed test and returns whether
 // the taker should be shown their result (live facilitator setting).
-import { sql, ensureSchema, getSetting } from './_db.js';
+import { sql, ensureSchema, getSetting, claimAccessCode } from './_db.js';
 import { appendToSheet } from './_sheets.js';
 
 export default async function handler(req, res) {
@@ -17,6 +17,7 @@ export default async function handler(req, res) {
     const email = String(b.email || '').slice(0, 200);
     const age = Number.isFinite(+b.age) ? Math.trunc(+b.age) : null;
     const phone = String(b.phone || '').slice(0, 60);
+    const accessCode = String(b.accessCode || '').trim().toUpperCase().slice(0, 40);
     const answers = Array.isArray(b.answers) ? b.answers : [];
     const raw = b.raw || {};
     const pct = b.pct || {};
@@ -27,22 +28,30 @@ export default async function handler(req, res) {
       res.status(400).json({ error: 'Name is required.' });
       return;
     }
+    if (!accessCode) {
+      res.status(400).json({ error: 'Access code is required.' });
+      return;
+    }
+    if (!(await claimAccessCode(accessCode))) {
+      res.status(400).json({ error: 'Invalid or already-used access code.' });
+      return;
+    }
 
     await sql`
       INSERT INTO results
-        (id, name, email, age, phone, answers,
+        (id, name, email, age, phone, access_code, answers,
          raw_goodness, raw_passion, raw_ignorance,
          pct_goodness, pct_passion, pct_ignorance,
          dominant, duration_ms)
       VALUES
-        (${id}, ${name}, ${email}, ${age}, ${phone}, ${JSON.stringify(answers)},
+        (${id}, ${name}, ${email}, ${age}, ${phone}, ${accessCode}, ${JSON.stringify(answers)},
          ${raw.goodness ?? null}, ${raw.passion ?? null}, ${raw.ignorance ?? null},
          ${pct.goodness ?? null}, ${pct.passion ?? null}, ${pct.ignorance ?? null},
          ${dominant}, ${durationMs});
     `;
 
     try {
-      await appendToSheet({ name, email, age, phone, dominant, raw, pct, durationMs, takenAt: new Date() });
+      await appendToSheet({ name, email, age, phone, accessCode, dominant, raw, pct, durationMs, takenAt: new Date() });
     } catch (err) {
       console.error('sheets append failed', err);
     }

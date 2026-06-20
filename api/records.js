@@ -29,7 +29,7 @@ export default async function handler(req, res) {
       return;
     }
     const { rows } = await sql`
-      SELECT id, name, email, age, phone, answers,
+      SELECT id, name, email, age, phone, access_code, answers,
              raw_goodness, raw_passion, raw_ignorance,
              pct_goodness, pct_passion, pct_ignorance,
              dominant, duration_ms, taken_at
@@ -43,6 +43,7 @@ export default async function handler(req, res) {
         email: r.email,
         age: r.age,
         phone: r.phone,
+        accessCode: r.access_code,
         answers: r.answers || [],
         raw: { goodness: r.raw_goodness, passion: r.raw_passion, ignorance: r.raw_ignorance },
         pct: { goodness: r.pct_goodness, passion: r.pct_passion, ignorance: r.pct_ignorance },

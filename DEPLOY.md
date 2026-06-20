@@ -74,6 +74,12 @@ has a **free tier**.
 
 ## How the facilitator uses it day-to-day
 - Open the site → click **Facilitator** (top-right) → enter the password.
+- **Generate access codes:** the test now requires a one-time access code to start —
+  takers without a valid, unused code can't begin. Under **Access codes**, enter how
+  many you need, click **Generate codes**, then **Copy all** and print/hand them out
+  (e.g. one slip of paper per person). A code is only consumed when someone actually
+  finishes and submits, so an abandoned attempt doesn't waste it. Click **Show all
+  codes** any time to see which are used vs. still available.
 - **Share the test:** copy the link, or click **Show QR code** and let people
   scan it with their phone camera to open the test.
 - **Show or hide results from takers:** flip the toggle. It applies to everyone
@@ -113,13 +119,17 @@ once:
 5. **Redeploy** (Deployments tab → latest → **•••** → Redeploy) so the new settings take effect.
 
 That's it — from now on, every submitted test appends a row (timestamp, name, email, age,
-phone, dominant quality, scores, time to complete) to that Sheet in real time. You can open
+phone, access code, dominant quality, scores, time to complete) to that Sheet in real time. You can open
 it in Google Sheets any time, or use **File → Download → Microsoft Excel (.xlsx)** to get a
 real Excel file. If these variables aren't set, the app behaves exactly as before — this
 feature is entirely optional and never blocks a submission if it fails.
 
 ## Frequently asked
 **Do takers install anything?** No. They just open the link in any phone browser.
+
+**Do takers need anything besides the link?** Yes — a one-time access code from the
+facilitator. Generate codes from the dashboard (see above) and hand them out; each
+code lets exactly one person take the test.
 
 **Where are results stored?** In the Vercel Postgres database — one shared place,
 visible to the facilitator from any device.

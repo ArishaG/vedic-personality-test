@@ -8,6 +8,8 @@
   var settings = { showResultsToTakers: true, balancedScoring: false };
   var filterRange = "all";
   var customFrom = null, customTo = null;
+  var accessCodes = [];          // [{ code, usedAt }] loaded from the server
+  var showAllCodes = false;
 
   function el(html) { var d = document.createElement("div"); d.innerHTML = html.trim(); return d.firstChild; }
   function esc(s) {
@@ -58,9 +60,14 @@
         if (r.status === 401) { pw = null; document.getElementById("f_pw").classList.add("invalid"); return; }
         return r.json().then(function (data) {
           records = (data && data.records) || [];
-          return api("/api/settings").then(function (sr) { return sr.json(); }).then(function (s) {
+          return Promise.all([
+            api("/api/settings").then(function (sr) { return sr.json(); }),
+            api("/api/access-codes").then(function (cr) { return cr.json(); })
+          ]).then(function (res) {
+            var s = res[0], c = res[1];
             if (s && typeof s.showResultsToTakers === "boolean") settings.showResultsToTakers = s.showResultsToTakers;
             if (s && typeof s.balancedScoring === "boolean") settings.balancedScoring = s.balancedScoring;
+            accessCodes = (c && c.codes) || [];
             renderDashboard();
           });
         });
@@ -73,11 +80,13 @@
     view.appendChild(el('<div class="card center"><h2>Loading results…</h2></div>'));
     Promise.all([
       api("/api/records").then(function (r) { return r.json(); }),
-      api("/api/settings").then(function (r) { return r.json(); })
+      api("/api/settings").then(function (r) { return r.json(); }),
+      api("/api/access-codes").then(function (r) { return r.json(); })
     ]).then(function (res) {
       records = (res[0] && res[0].records) || [];
       if (res[1] && typeof res[1].showResultsToTakers === "boolean") settings.showResultsToTakers = res[1].showResultsToTakers;
       if (res[1] && typeof res[1].balancedScoring === "boolean") settings.balancedScoring = res[1].balancedScoring;
+      accessCodes = (res[2] && res[2].codes) || [];
       renderDashboard();
     }).catch(function () {
       view.innerHTML = "";
@@ -159,6 +168,22 @@
     card.appendChild(shareRow);
     var qrWrap = el('<div id="qrWrap" class="center hidden" style="margin:6px 0 4px"></div>');
     card.appendChild(qrWrap);
+
+    /* access codes */
+    var unusedCount = accessCodes.filter(function (c) { return !c.usedAt; }).length;
+    card.appendChild(el('<div class="section-title">Access codes</div>'));
+    card.appendChild(el(
+      '<div class="toolbar">' +
+        '<span class="muted">' + unusedCount + ' unused &middot; ' + (accessCodes.length - unusedCount) +
+          ' used &middot; ' + accessCodes.length + ' total</span>' +
+        '<input id="genCount" type="number" min="1" max="500" value="20" style="width:80px" />' +
+        '<button class="btn small" id="genCodes">Generate codes</button>' +
+        '<button class="btn ghost small" id="toggleCodes">' + (showAllCodes ? "Hide all codes" : "Show all codes") + '</button>' +
+      '</div>'
+    ));
+    var genResult = el('<div id="genResult" class="hidden" style="margin:6px 0 4px"></div>');
+    card.appendChild(genResult);
+    if (showAllCodes) card.appendChild(el(codesTable(accessCodes)));
 
     /* live setting */
     card.appendChild(el('<div class="section-title">Display setting (applies to everyone, live)</div>'));
@@ -259,6 +284,19 @@
       '<p class="muted" style="font-size:12px">Numbers in (parentheses) show how each person compares to the group average for this date range.</p></div>';
   }
 
+  function codesTable(codes) {
+    if (!codes.length) return '<p class="muted">No access codes yet — generate some above.</p>';
+    var rows = codes.slice().sort(function (a, b) {
+      return (a.usedAt ? 1 : 0) - (b.usedAt ? 1 : 0);
+    }).map(function (c) {
+      return '<tr><td><code>' + esc(c.code) + '</code></td><td>' +
+        (c.usedAt ? '<small class="muted">Used ' + fmtDate(c.usedAt) + '</small>' : '<strong style="color:#1a7f37">Unused</strong>') +
+        '</td></tr>';
+    }).join("");
+    return '<div style="overflow-x:auto;max-height:280px;overflow-y:auto"><table class="cmp-table">' +
+      '<thead><tr><th>Code</th><th>Status</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+  }
+
   /* ---------- wiring ---------- */
   function wire() {
     document.getElementById("refresh").addEventListener("click", loadAndRender);
@@ -272,6 +310,41 @@
       flash("Link copied.");
     });
     document.getElementById("qrBtn").addEventListener("click", toggleQr);
+
+    document.getElementById("genCodes").addEventListener("click", function () {
+      var n = Math.max(1, Math.min(500, Math.trunc(Number(document.getElementById("genCount").value)) || 0));
+      api("/api/access-codes", { method: "POST", body: { count: n } })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!data || !data.created) { flash("Could not generate codes."); return; }
+          accessCodes = accessCodes.concat(data.created.map(function (c) { return { code: c, usedAt: null }; }));
+          var wrap = document.getElementById("genResult");
+          wrap.classList.remove("hidden");
+          wrap.innerHTML = "";
+          wrap.appendChild(el(
+            '<div style="background:#f6f8fa;padding:12px;border-radius:8px">' +
+              '<strong>' + data.created.length + ' new code' + (data.created.length === 1 ? "" : "s") + ' — copy and print these:</strong>' +
+              '<textarea id="newCodesArea" readonly style="width:100%;height:120px;margin-top:6px;font-family:monospace">' +
+                esc(data.created.join("\n")) +
+              '</textarea>' +
+              '<button class="btn ghost small" id="copyCodes" style="margin-top:6px">Copy all</button>' +
+            '</div>'
+          ));
+          document.getElementById("copyCodes").addEventListener("click", function () {
+            var ta = document.getElementById("newCodesArea");
+            ta.select();
+            try { document.execCommand("copy"); } catch (e) {}
+            if (navigator.clipboard) navigator.clipboard.writeText(ta.value).catch(function () {});
+            flash("Codes copied.");
+          });
+          flash("Generated " + data.created.length + " codes.");
+        })
+        .catch(function () { flash("Could not generate codes."); });
+    });
+    document.getElementById("toggleCodes").addEventListener("click", function () {
+      showAllCodes = !showAllCodes;
+      renderDashboard();
+    });
 
     document.getElementById("showToggle").addEventListener("change", function (e) {
       var val = e.target.checked;
@@ -344,6 +417,7 @@
     var rows = recs.map(function (r) {
       return {
         Name: r.name || "", Email: r.email || "", Age: r.age != null ? r.age : "", Phone: r.phone || "",
+        AccessCode: r.accessCode || "",
         Dominant: modeName(r.dominant),
         ClarityPct: r.pct ? r.pct.goodness : "", DrivePct: r.pct ? r.pct.passion : "", InertiaPct: r.pct ? r.pct.ignorance : "",
         ClarityRaw: r.raw ? r.raw.goodness : "", DriveRaw: r.raw ? r.raw.passion : "", InertiaRaw: r.raw ? r.raw.ignorance : "",
