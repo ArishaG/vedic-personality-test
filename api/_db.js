@@ -80,8 +80,8 @@ const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no I, O, 0, 1 — easy
 
 function randomCode() {
   let s = '';
-  for (let i = 0; i < 8; i++) s += CODE_CHARS[crypto.randomInt(CODE_CHARS.length)];
-  return s.slice(0, 4) + '-' + s.slice(4);
+  for (let i = 0; i < 6; i++) s += CODE_CHARS[crypto.randomInt(CODE_CHARS.length)];
+  return s;
 }
 
 export async function createAccessCodes(count) {

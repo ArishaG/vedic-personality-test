@@ -22,7 +22,7 @@
         '<p class="lead">Answer 36 quick statements. Takes about 5 minutes. Your result reveals your balance of ' +
         'three inner qualities — Clarity, Drive and Inertia.</p>' +
         '<form id="who" style="max-width:480px;margin:18px auto 0;">' +
-          field("code", "Access code", "text", true) +
+          field("code", "Access code", "text", true, 'maxlength="6" autocapitalize="characters" autocorrect="off" spellcheck="false" style="text-transform:uppercase;letter-spacing:2px"') +
           field("name", "Full name", "text", true) +
           field("email", "Email", "email", true) +
           field("age", "Age", "number", true) +
@@ -35,13 +35,13 @@
     document.getElementById("who").addEventListener("submit", onWelcomeSubmit);
   }
 
-  function field(id, label, type, required) {
+  function field(id, label, type, required, extra) {
     return (
       '<div class="field" id="f_' + id + '">' +
         '<label for="' + id + '">' + esc(label) + (required ? ' <span class="req">*</span>' : '') + '</label>' +
         '<input id="' + id + '" name="' + id + '" type="' + type + '" ' +
           (type === "number" ? 'min="1" max="120" inputmode="numeric" ' : '') +
-          'autocomplete="off" ' + (required ? 'required' : '') + ' />' +
+          'autocomplete="off" ' + (required ? 'required' : '') + ' ' + (extra || '') + ' />' +
         '<div class="err">Please enter a valid ' + esc(label.replace(" (optional)", "").toLowerCase()) + '.</div>' +
       '</div>'
     );
