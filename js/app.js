@@ -70,6 +70,8 @@
       return '<p class="muted">Be the first to take the reading and set the baseline!</p>';
     }
     var dots = buildCrowdDots(g || 0, p || 0, ig || 0);
+    var topMode = (g || 0) >= (p || 0) && (g || 0) >= (ig || 0) ? "goodness" : ((p || 0) >= (ig || 0) ? "passion" : "ignorance");
+    var topInfo = VPI.ANALYSIS[topMode];
     return (
       '<div class="crowd-viz">' +
         '<div class="crowd-blob">' +
@@ -80,7 +82,9 @@
           legendItem(VPI.ANALYSIS.passion.color, "Rajas", p) +
           legendItem(VPI.ANALYSIS.ignorance.color, "Tamas", ig) +
         '</div>' +
-      '</div>'
+      '</div>' +
+      '<p class="landing-stats-note muted">From Veg Fest today, most people were in ' +
+        '<strong style="color:' + topInfo.color + '">' + topInfo.name + '</strong>.</p>'
     );
   }
   function loadLandingStats() {

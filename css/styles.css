@@ -161,6 +161,8 @@ p.lead { color: var(--muted); margin-top: 0; font-size: 17px; }
 .landing-right { text-align: left; }
 .stats-label { font-size: 15px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent-bright); margin-bottom: 16px; font-weight: 600; }
 .landing-question { color: var(--ink); font-size: 25px; font-style: italic; margin-top: 20px; }
+.landing-stats-note { font-size: 15px; margin: 14px 0 0; }
+.landing-stats-note strong { font-family: "Playfair Display", serif; }
 .scroll-hint { text-align: center; color: var(--muted); font-size: 13px; margin: 6px 0 36px; opacity: .8; animation: bob 2.4s ease-in-out infinite; }
 @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
 
@@ -183,10 +185,17 @@ p.lead { color: var(--muted); margin-top: 0; font-size: 17px; }
 .legend-dot { width: 18px; height: 18px; border-radius: 50%; box-shadow: 0 0 8px currentColor; flex: 0 0 auto; }
 
 @media (min-width: 880px) and (orientation: landscape) {
-  .landing { display: grid; grid-template-columns: 1fr min(1700px, 92vw) 1fr; }
-  .landing-hero, .scroll-hint, .guna-section { grid-column: 2; }
+  /* Break .landing out to the true viewport width — without this, the centered
+     grid column below was computing against .wrap's narrower max-width instead
+     of the real screen, which is why content drifted off true-center. */
+  .landing { width: 100vw; margin-left: calc(50% - 50vw); }
+  .scroll-hint, .guna-section {
+    max-width: min(1700px, 92vw); margin-left: auto; margin-right: auto;
+  }
   .landing-hero {
     flex-direction: row; align-items: center; justify-content: space-between; gap: 50px;
+    padding-left: clamp(60px, 9vw, 220px);
+    padding-right: clamp(160px, 16vw, 360px);
   }
   .landing-left { flex: 0 1 920px; }
   .landing-right { flex: 0 1 620px; }
