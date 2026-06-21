@@ -374,6 +374,13 @@ p.lead { color: var(--muted); margin-top: 0; font-size: 20px; }
   border-left: 5px solid var(--accent); background: rgba(217, 179, 95, .1);
   padding: 14px 16px; border-radius: 10px; margin: 18px 0; color: var(--ink);
 }
+.insight-block {
+  border: 1px solid rgba(217, 179, 95, .35);
+  background: linear-gradient(165deg, rgba(217, 179, 95, .12), rgba(217, 179, 95, .03));
+  border-radius: 16px; padding: 18px 20px; margin: 18px 0; color: var(--ink);
+}
+.insight-block .sub { font-weight: 700; margin-top: 10px; color: var(--ink); }
+.insight-block ul { margin: 8px 0; padding-left: 20px; }
 .analysis-block { border-top: 1px solid var(--line); padding-top: 18px; margin-top: 18px; }
 .analysis-block h3 { margin: 0 0 4px; color: var(--ink); font-family: "Playfair Display", serif; }
 .analysis-block .pill { display: inline-block; color: #1a1033; padding: 3px 12px; border-radius: 20px; font-size: 15px; font-weight: 700; margin-bottom: 8px; }

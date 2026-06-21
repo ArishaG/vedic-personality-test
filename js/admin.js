@@ -346,7 +346,23 @@
         VPI.ANALYSIS.goodness.name + ' ' + (raw.goodness != null ? raw.goodness : "—") + ' &middot; ' +
         VPI.ANALYSIS.passion.name + ' ' + (raw.passion != null ? raw.passion : "—") + ' &middot; ' +
         VPI.ANALYSIS.ignorance.name + ' ' + (raw.ignorance != null ? raw.ignorance : "—") + '</p>' +
+      (r.aiInsight ? '' :
+        '<div class="btn-row no-print" style="justify-content:center;margin:18px 0">' +
+          '<button class="btn ghost" id="getInsightAdmin">&#10024; Generate AI insight</button>' +
+        '</div>'
+      ) +
+      '<div id="insightAreaAdmin">' + (r.aiInsight ? insightHtml(r.aiInsight) : '') + '</div>' +
       v.order.map(profileAnalysisBlock).join("")
+    );
+  }
+  function insightHtml(insight) {
+    return (
+      '<div class="insight-block">' +
+        '<div class="section-title" style="margin-top:0">AI-Personalized Reading</div>' +
+        '<p>' + esc(insight.reading) + '</p>' +
+        '<div class="sub">Action items</div>' +
+        '<ul>' + (insight.actionItems || []).map(function (t) { return '<li>' + esc(t) + '</li>'; }).join("") + '</ul>' +
+      '</div>'
     );
   }
   function openProfile(id) {
@@ -372,6 +388,33 @@
     document.getElementById("closeProfile").addEventListener("click", closeProfile);
     document.getElementById("exportProfilePdf").addEventListener("click", function () { window.print(); });
     overlay.addEventListener("click", function (e) { if (e.target === overlay) closeProfile(); });
+    var insightBtn = document.getElementById("getInsightAdmin");
+    if (insightBtn) {
+      insightBtn.addEventListener("click", function () {
+        insightBtn.disabled = true;
+        insightBtn.textContent = "Thinking…";
+        api("/api/insight", { method: "POST", body: { id: r.id } })
+          .then(function (resp) { return resp.json().catch(function () { return {}; }); })
+          .then(function (data) {
+            if (!data || !data.insight) {
+              document.getElementById("insightAreaAdmin").innerHTML =
+                '<p class="muted" style="font-size:13px">' + esc((data && data.error) || "Could not generate an insight right now.") + '</p>';
+              insightBtn.disabled = false;
+              insightBtn.textContent = "✨ Generate AI insight";
+              return;
+            }
+            r.aiInsight = data.insight;
+            document.getElementById("insightAreaAdmin").innerHTML = insightHtml(data.insight);
+            insightBtn.parentElement.remove();
+          })
+          .catch(function () {
+            document.getElementById("insightAreaAdmin").innerHTML =
+              '<p class="muted" style="font-size:13px">Could not reach the server — check your connection and try again.</p>';
+            insightBtn.disabled = false;
+            insightBtn.textContent = "✨ Generate AI insight";
+          });
+      });
+    }
   }
   function closeProfile() {
     var existing = document.getElementById("profileModal");

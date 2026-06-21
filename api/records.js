@@ -32,7 +32,7 @@ export default async function handler(req, res) {
       SELECT id, name, email, age, zip, phone, access_code, answers,
              raw_goodness, raw_passion, raw_ignorance,
              pct_goodness, pct_passion, pct_ignorance,
-             dominant, duration_ms, taken_at
+             dominant, duration_ms, taken_at, ai_insight
       FROM results
       ORDER BY taken_at DESC;
     `;
@@ -50,7 +50,8 @@ export default async function handler(req, res) {
         pct: { goodness: r.pct_goodness, passion: r.pct_passion, ignorance: r.pct_ignorance },
         dominant: r.dominant,
         durationMs: r.duration_ms,
-        takenAt: r.taken_at
+        takenAt: r.taken_at,
+        aiInsight: r.ai_insight
       };
     });
     res.status(200).json({ records: records });

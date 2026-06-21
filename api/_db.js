@@ -27,12 +27,14 @@ export async function ensureSchema() {
       pct_ignorance REAL,
       dominant      TEXT,
       duration_ms   INTEGER,
-      taken_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+      taken_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+      ai_insight    JSONB
     );
   `;
   // Migration for tables created before these columns existed.
   await sql`ALTER TABLE results ADD COLUMN IF NOT EXISTS access_code TEXT;`;
   await sql`ALTER TABLE results ADD COLUMN IF NOT EXISTS zip TEXT;`;
+  await sql`ALTER TABLE results ADD COLUMN IF NOT EXISTS ai_insight JSONB;`;
   // Age moved from a single integer to a range (e.g. "25-34"); widen the column if needed.
   await sql`ALTER TABLE results ALTER COLUMN age TYPE TEXT;`;
   await sql`
@@ -163,6 +165,36 @@ export function isAuthed(req) {
     (req.query && req.query.pw) ||
     '';
   return String(provided) === String(adminPassword());
+}
+
+// Fetch one full result row (for generating/serving its AI insight).
+export async function getResultById(id) {
+  await ensureSchema();
+  const { rows } = await sql`
+    SELECT id, name, email, age, zip, phone, access_code, answers,
+           raw_goodness, raw_passion, raw_ignorance,
+           pct_goodness, pct_passion, pct_ignorance,
+           dominant, duration_ms, taken_at, ai_insight
+    FROM results WHERE id = ${id};
+  `;
+  if (!rows.length) return null;
+  const r = rows[0];
+  return {
+    id: r.id, name: r.name, email: r.email, age: r.age, zip: r.zip, phone: r.phone,
+    accessCode: r.access_code,
+    answers: r.answers || [],
+    raw: { goodness: r.raw_goodness, passion: r.raw_passion, ignorance: r.raw_ignorance },
+    pct: { goodness: r.pct_goodness, passion: r.pct_passion, ignorance: r.pct_ignorance },
+    dominant: r.dominant,
+    durationMs: r.duration_ms,
+    takenAt: r.taken_at,
+    aiInsight: r.ai_insight
+  };
+}
+
+export async function saveAiInsight(id, insight) {
+  await ensureSchema();
+  await sql`UPDATE results SET ai_insight = ${JSON.stringify(insight)} WHERE id = ${id};`;
 }
 
 export { sql };

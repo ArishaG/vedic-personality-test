@@ -129,6 +129,28 @@ it in Google Sheets any time, or use **File → Download → Microsoft Excel (.x
 real Excel file. If these variables aren't set, the app behaves exactly as before — this
 feature is entirely optional and never blocks a submission if it fails.
 
+## Optional: AI-personalized readings
+By default, takers and the facilitator see the same write-up for everyone who shares a
+dominant quality. Turning this on adds a **"Get my personalized insights"** button (on the
+taker's result screen) and a **"Generate AI insight"** button (in the facilitator's profile
+view) that calls Claude to write a short reading and 3–5 action items grounded in that
+specific person's actual 36 answers — not just their aggregate score. It's generated once
+per person and saved, so re-opening the same profile never re-generates or re-charges.
+
+1. **Get an API key.** Go to https://console.anthropic.com, sign up/sign in, open
+   **API Keys**, and create a new key. You'll need a payment method on the account, but
+   usage here is tiny — each generation costs well under a cent (roughly $0.02 at typical
+   usage), so even a few hundred readings costs only a few dollars total.
+2. **Add the Vercel environment variable.** In your Vercel project, open
+   **Settings → Environment Variables** and add:
+   - `ANTHROPIC_API_KEY` — the key you just created.
+3. **Redeploy** (Deployments tab → latest → **•••** → Redeploy) so the new setting takes effect.
+
+That's it — the buttons appear automatically once the key is set. If it's not set, the app
+behaves exactly as before; this feature is entirely optional. The exact model used can be
+changed with an optional `ANTHROPIC_MODEL` variable (defaults to Anthropic's top model,
+`claude-opus-4-8`) if you'd rather use a cheaper one.
+
 ## Frequently asked
 **Do takers install anything?** No. They just open the link in any phone browser.
 

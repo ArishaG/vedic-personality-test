@@ -5,6 +5,7 @@
   "type": "module",
   "description": "Hosted, mobile-friendly Vedic Personality Reading with central storage (Vercel + Vercel Postgres).",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.2",
     "@vercel/postgres": "^0.10.0",
     "google-auth-library": "^9.15.0"
   }

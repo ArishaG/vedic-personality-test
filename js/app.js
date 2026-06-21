@@ -315,13 +315,13 @@
         var show = data && data.showResults;
         if (show === undefined) show = true; // fail open
         var balanced = !!(data && data.balancedScoring);
-        if (show) renderResult(result, state.person, false, balanced);
+        if (show) renderResult(result, state.person, false, balanced, data && data.id);
         else renderThankYou(state.person);
       })
       .catch(function () {
         // Network failure or server error — still show the result so the taker
         // isn't stuck, but flag that it may not have been saved centrally.
-        renderResult(result, state.person, true, false);
+        renderResult(result, state.person, true, false, null);
       });
   }
 
@@ -369,7 +369,49 @@
     );
   }
 
-  function renderResult(result, person, offline, balanced) {
+  function insightHtml(insight) {
+    return (
+      '<div class="insight-block">' +
+        '<div class="section-title" style="margin-top:0">Your Personalized Reading</div>' +
+        '<p>' + esc(insight.reading) + '</p>' +
+        '<div class="sub">Your action items</div>' +
+        '<ul>' + (insight.actionItems || []).map(function (t) { return '<li>' + esc(t) + '</li>'; }).join("") + '</ul>' +
+      '</div>'
+    );
+  }
+  function wireInsightButton(resultId, accessCode) {
+    var btn = document.getElementById("getInsight");
+    if (!btn) return;
+    if (!resultId) { btn.remove(); return; }
+    btn.addEventListener("click", function () {
+      btn.disabled = true;
+      btn.textContent = "Thinking…";
+      fetch("/api/insight", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: resultId, accessCode: accessCode })
+      }).then(function (r) { return r.json().catch(function () { return {}; }); })
+        .then(function (data) {
+          if (!data || !data.insight) {
+            document.getElementById("insightArea").innerHTML =
+              '<p class="muted" style="font-size:13px">' + esc((data && data.error) || "Could not generate your insight right now.") + '</p>';
+            btn.disabled = false;
+            btn.textContent = "✨ Get my personalized insights";
+            return;
+          }
+          document.getElementById("insightArea").innerHTML = insightHtml(data.insight);
+          btn.remove();
+        })
+        .catch(function () {
+          document.getElementById("insightArea").innerHTML =
+            '<p class="muted" style="font-size:13px">Could not reach the server — check your connection and try again.</p>';
+          btn.disabled = false;
+          btn.textContent = "✨ Get my personalized insights";
+        });
+    });
+  }
+
+  function renderResult(result, person, offline, balanced, resultId) {
     var v = VPI.resultView(result, !!balanced);
     var a = VPI.ANALYSIS[v.dominant];
     view.innerHTML = "";
@@ -389,6 +431,12 @@
           esc(VPI.ANALYSIS.passion.name) + ' ' + result.raw.passion + ' (' + result.pct.passion + '%) &middot; ' +
           esc(VPI.ANALYSIS.ignorance.name) + ' ' + result.raw.ignorance + ' (' + result.pct.ignorance + '%)</p>' +
         (offline ? '<p class="muted" style="font-size:13px">(You appear to be offline — your result is shown here but may not have been saved centrally.)</p>' : '') +
+        (resultId ?
+          '<div class="btn-row no-print" style="justify-content:center;margin:18px 0">' +
+            '<button class="btn ghost" id="getInsight">&#10024; Get my personalized insights</button>' +
+          '</div>' +
+          '<div id="insightArea"></div>'
+        : '') +
         v.order.map(analysisBlock).join("") +
         '<div class="btn-row no-print" style="justify-content:center;margin-top:24px">' +
           '<button class="btn ghost" id="exportPdf">&#11015; Download / Print as PDF</button>' +
@@ -396,6 +444,7 @@
       '</div>'
     );
     view.appendChild(card);
+    wireInsightButton(resultId, person.accessCode);
     document.getElementById("exportPdf").addEventListener("click", function () { window.print(); });
     window.scrollTo(0, 0);
   }
